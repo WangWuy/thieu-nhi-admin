@@ -423,3 +423,12 @@ button:disabled,
 .welcome-card p {
   color: var(--logo-red-700) !important;
 }
+
+/* Custom button overrides for specific actions */
+.text-yellow-600 {
+  color: #d97706 !important;
+}
+
+.text-yellow-600:hover {
+  color: #b45309 !important;
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import StudentForm from './StudentForm';
@@ -182,20 +182,32 @@ const StudentListPage = () => {
                                     </td>
                                     
                                     <td className="px-6 py-4">
-                                        <div className="text-sm text-gray-900">{student.class.name}</div>
-                                        {age && <div className="text-sm text-gray-500">{age} tuổi</div>}
+                                        <div className="text-sm font-medium text-gray-900">{student.class.name}</div>
+                                        {age && <span className="inline-block px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">{age} tuổi</span>}
                                     </td>
                                     
                                     <td className="px-6 py-4">
-                                        <div className="text-sm">
+                                        <div className="text-sm space-y-1">
                                             {student.parentPhone1 && (
-                                                <div>SĐT 1: {student.parentPhone1}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-700 font-medium">SĐT 1:</span>
+                                                    <span className="text-gray-900 font-semibold">{student.parentPhone1}</span>
+                                                </div>
                                             )}
                                             {student.parentPhone2 && (
-                                                <div>SĐT 2: {student.parentPhone2}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-700 font-medium">SĐT 2:</span>
+                                                    <span className="text-gray-900 font-semibold">{student.parentPhone2}</span>
+                                                </div>
                                             )}
-                                            {!student.parentPhone1 && !student.parentPhone2 && (
-                                                <span className="text-gray-400">Chưa có SĐT</span>
+                                            {student.phoneNumber && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-blue-700 font-medium">SĐT TN:</span>
+                                                    <span className="text-blue-600 font-semibold">{student.phoneNumber}</span>
+                                                </div>
+                                            )}
+                                            {!student.parentPhone1 && !student.parentPhone2 && !student.phoneNumber && (
+                                                <span className="text-gray-400 italic">Chưa có SĐT</span>
                                             )}
                                         </div>
                                     </td>

@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 
 // Field mappings
 export const STUDENT_MAPPINGS = {
-    'studentCode': ['Mã học sinh', 'Mã TN', 'Student Code', 'Ma hoc sinh', 'Code', 'ID', 'STT'],
+    'studentCode': ['Mã TN', 'Student Code', 'Ma hoc sinh', 'Code', 'ID', 'STT'],
     'saintName': ['Tên thánh', 'TÊN THÁNH', 'Saint Name', 'Ten thanh', 'Saint'],
     'fullName': ['Họ và tên', 'HỌ VÀ TÊN', 'Full Name', 'Tên', 'Ho ten', 'Name'],
     'birthDate': ['Ngày sinh', 'NGÀY SINH', 'Birth Date', 'DOB', 'Ngay sinh'],
@@ -123,7 +123,7 @@ export const validateRow = (data, type) => {
 
     if (type === 'student') {
         if (!data.fullName) errors.push('Họ tên là bắt buộc');
-        if (!data.studentCode) errors.push('Mã học sinh là bắt buộc');
+        if (!data.studentCode) errors.push('Mã TN là bắt buộc');
 
         if (data.phoneNumber && !/^(\+84|0)[3|5|7|8|9][0-9]{8}$/.test(data.phoneNumber)) {
             errors.push('Số điện thoại không hợp lệ');

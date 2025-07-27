@@ -119,7 +119,7 @@ export const studentService = {
 
             // Convert to CSV format for download
             const csvData = students.map(student => ({
-                'Mã học sinh': student.studentCode,
+                'Mã TN': student.studentCode,
                 'Tên thánh': student.saintName || '',
                 'Họ và tên': student.fullName,
                 'Ngày sinh': student.birthDate ? new Date(student.birthDate).toLocaleDateString('vi-VN') : '',

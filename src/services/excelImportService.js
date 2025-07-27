@@ -4,7 +4,7 @@ import { validators } from '../utils/validation.jsx';
 // Excel column mappings cho Students
 const STUDENT_COLUMN_MAPPING = {
     // Vietnamese headers -> internal field names
-    'Mã học sinh': 'studentCode',
+    'Mã TN': 'studentCode',
     'Mã số': 'studentCode',
     'Student Code': 'studentCode',
 
@@ -409,7 +409,7 @@ class ExcelImportService {
         }
 
         if (!data.studentCode) {
-            errors.push('Mã học sinh là bắt buộc');
+            errors.push('Mã thiếu nhi là bắt buộc');
         } else {
             const codeError = validators.studentCode(data.studentCode);
             if (codeError) {
@@ -543,8 +543,8 @@ class ExcelImportService {
         if (type === 'student') {
             recommendations.push({
                 type: 'info',
-                message: 'Đảm bảo file Excel có các cột: Mã học sinh, Họ tên, Lớp',
-                details: ['Mã học sinh phải có format TNxxxx', 'Lớp phải tồn tại trong hệ thống']
+                message: 'Đảm bảo file Excel có các cột: Mã TN, Họ tên, Lớp',
+                details: ['Mã TN phải có format TNxxxx', 'Lớp phải tồn tại trong hệ thống']
             });
         } else {
             recommendations.push({

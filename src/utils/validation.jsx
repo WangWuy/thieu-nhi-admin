@@ -200,7 +200,7 @@ export const validationSchemas = {
     // Student creation/update
     student: {
         studentCode: [
-            (value) => validators.required(value, 'Mã học sinh'),
+            (value) => validators.required(value, 'Mã TN'),
             (value) => validators.studentCode(value)
         ],
         fullName: [
