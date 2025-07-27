@@ -123,7 +123,7 @@ const StudentModal = ({ student, isOpen, onClose, onSave }) => {
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-gray-200">
                         <h2 className="text-xl font-semibold text-gray-900">
-                            {student ? 'Chỉnh sửa học sinh' : 'Thêm học sinh mới'}
+                            {student ? 'Chỉnh sửa thiếu nhi' : 'Thêm thiếu nhi mới'}
                         </h2>
                         <button
                             type="button"
@@ -146,7 +146,7 @@ const StudentModal = ({ student, isOpen, onClose, onSave }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Mã học sinh *
+                                    Mã thiếu nhi *
                                 </label>
                                 <input
                                     type="text"

@@ -36,7 +36,7 @@ const ExcelImportModal = ({ isOpen, onClose, onSuccess }) => {
             const successCount = result.results?.success?.length || 0;
             const failedCount = result.results?.failed?.length || 0;
             
-            alert(`Import thành công ${successCount} học sinh! ${failedCount > 0 ? `${failedCount} lỗi.` : ''}`);
+            alert(`Import thành công ${successCount} thiếu nhi! ${failedCount > 0 ? `${failedCount} lỗi.` : ''}`);
             
             if (successCount > 0) {
                 onSuccess();
@@ -55,7 +55,7 @@ const ExcelImportModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg w-full max-w-md">
                 <div className="flex items-center justify-between p-6 border-b">
-                    <h2 className="text-xl font-semibold">Import học sinh</h2>
+                    <h2 className="text-xl font-semibold">Import thiếu nhi</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <X className="w-6 h-6" />
                     </button>

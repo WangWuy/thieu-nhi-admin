@@ -155,7 +155,7 @@ const ClassListPage = () => {
 
                                     {/* Teachers */}
                                     <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-red-700 mb-2">Giáo viên:</h4>
+                                        <h4 className="text-sm font-medium text-red-700 mb-2">Giáo lý viên:</h4>
                                         {classItem.classTeachers?.length > 0 ? (
                                             <div className="space-y-1">
                                                 {classItem.classTeachers.map(ct => (
@@ -171,7 +171,7 @@ const ClassListPage = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-red-400">Chưa có giáo viên</p>
+                                            <p className="text-sm text-red-400">Chưa có giáo lý viên</p>
                                         )}
                                     </div>
 
@@ -179,7 +179,7 @@ const ClassListPage = () => {
                                     <div className="flex items-center justify-between pt-4 border-t border-red-100">
                                         <div className="flex items-center gap-2 text-sm text-red-600">
                                             <Users className="w-4 h-4" />
-                                            <span>{classItem._count?.students || 0} học sinh</span>
+                                            <span>{classItem._count?.students || 0} thiếu nhi</span>
                                         </div>
 
                                         <a

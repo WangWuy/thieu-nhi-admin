@@ -145,7 +145,7 @@ const Dashboard = ({ user }) => {
                 />
                 <StatCard
                     icon={Users}
-                    title="Tổng học sinh"
+                    title="Tổng thiếu nhi"
                     value={stats?.summary?.totalStudents || 0}
                     color="text-red-600"
                     description="Đang học"
@@ -176,11 +176,11 @@ const Dashboard = ({ user }) => {
                                         <span className="font-medium text-red-800">{dept.totalClasses}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-red-600">Học sinh:</span>
+                                        <span className="text-red-600">Thiếu nhi:</span>
                                         <span className="font-medium text-red-800">{dept.totalStudents}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-red-600">Giáo viên:</span>
+                                        <span className="text-red-600">Giáo lý viên:</span>
                                         <span className="font-medium text-red-800">{dept.totalTeachers}</span>
                                     </div>
                                 </div>

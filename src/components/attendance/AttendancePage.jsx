@@ -323,7 +323,7 @@ const AttendancePage = () => {
             ) : filters.classId ? (
                 <div className="text-center py-12 bg-white rounded-lg border border-red-100">
                     <Users className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <div className="text-red-500">Không có học sinh nào trong lớp này</div>
+                    <div className="text-red-500">Không có thiếu nhi nào trong lớp này</div>
                 </div>
             ) : (
                 <div className="text-center py-12 bg-white rounded-lg border border-red-100">

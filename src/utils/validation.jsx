@@ -76,7 +76,7 @@ export const validators = {
     studentCode: (value) => {
         if (!value) return null;
         const codeRegex = /^TN[0-9]{4}$/;
-        return codeRegex.test(value) ? null : 'Mã học sinh phải có format TNxxxx (4 số)';
+        return codeRegex.test(value) ? null : 'Mã thiếu nhi phải có format TNxxxx (4 số)';
     },
 
     // Age validation

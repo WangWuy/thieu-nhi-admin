@@ -47,7 +47,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
 
         // Basic validation
         const newErrors = {};
-        if (!formData.studentCode) newErrors.studentCode = 'Mã học sinh là bắt buộc';
+        if (!formData.studentCode) newErrors.studentCode = 'Mã thiếu nhi là bắt buộc';
         if (!formData.fullName) newErrors.fullName = 'Họ tên là bắt buộc';
         if (!formData.classId) newErrors.classId = 'Lớp là bắt buộc';
 
@@ -74,7 +74,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
             <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b">
                     <h2 className="text-xl font-semibold">
-                        {student ? 'Chỉnh sửa học sinh' : 'Thêm học sinh'}
+                        {student ? 'Chỉnh sửa thiếu nhi' : 'Thêm thiếu nhi'}
                     </h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">×</button>
                 </div>
@@ -82,7 +82,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Mã học sinh *</label>
+                            <label className="block text-sm font-medium mb-1">Mã thiếu nhi *</label>
                             <input
                                 type="text"
                                 value={formData.studentCode}

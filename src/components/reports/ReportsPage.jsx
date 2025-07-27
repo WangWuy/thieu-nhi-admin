@@ -20,7 +20,7 @@ const ReportsPage = () => {
 
     const reportTypes = [
         { value: 'attendance', label: 'Báo cáo điểm danh', icon: Users },
-        { value: 'students', label: 'Báo cáo học sinh', icon: Users },
+        { value: 'students', label: 'Báo cáo thiếu nhi', icon: Users },
         { value: 'performance', label: 'Báo cáo thành tích', icon: TrendingUp },
         { value: 'overview', label: 'Báo cáo tổng quan', icon: BarChart3 }
     ];
@@ -115,7 +115,7 @@ const ReportsPage = () => {
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
                             {type.value === 'attendance' && 'Thống kê điểm danh theo thời gian và lớp học'}
-                            {type.value === 'students' && 'Danh sách và thông tin chi tiết học sinh'}
+                            {type.value === 'students' && 'Danh sách và thông tin chi tiết thiếu nhi'}
                             {type.value === 'performance' && 'Điểm số và thành tích học tập'}
                             {type.value === 'overview' && 'Tổng quan hoạt động thiếu nhi'}
                         </p>

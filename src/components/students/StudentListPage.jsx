@@ -78,7 +78,7 @@ const StudentListPage = () => {
     };
 
     const handleDeleteStudent = async (studentId) => {
-        if (!confirm('Bạn có chắc muốn xóa học sinh này?')) return;
+        if (!confirm('Bạn có chắc muốn xóa thiếu nhi này?')) return;
         try {
             await studentService.deleteStudent(studentId);
             fetchStudents();
@@ -140,7 +140,7 @@ const StudentListPage = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Học sinh
+                                Thiếu nhi
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Mã số
@@ -262,13 +262,13 @@ const StudentListPage = () => {
             {students.length === 0 && !loading && (
                 <div className="text-center py-12">
                     <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <div className="text-gray-500 mb-4">Không tìm thấy học sinh nào</div>
+                    <div className="text-gray-500 mb-4">Không tìm thấy thiếu nhi nào</div>
                     <div className="flex justify-center gap-3">
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
                         >
-                            Thêm học sinh mới
+                            Thêm thiếu nhi mới
                         </button>
                         <button
                             onClick={() => setShowImportModal(true)}

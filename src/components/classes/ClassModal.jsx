@@ -89,7 +89,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
 
     const handleAssignTeacher = async (teacherId, isPrimary = false) => {
         if (!classItem) {
-            alert('Vui lòng tạo lớp trước khi phân công giáo viên');
+            alert('Vui lòng tạo lớp trước khi phân công giáo lý viên');
             return;
         }
 
@@ -194,12 +194,12 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                         {/* Teacher Assignment (only for edit mode) */}
                         {classItem && (
                             <div className="space-y-4">
-                                <h3 className="text-lg font-medium text-gray-900">Phân công giáo viên</h3>
+                                <h3 className="text-lg font-medium text-gray-900">Phân công giáo lý viên</h3>
 
                                 {/* Assigned Teachers */}
                                 {assignedTeachers.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo viên đã phân công:</h4>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo lý viên đã phân công:</h4>
                                         <div className="space-y-2">
                                             {assignedTeachers.map(at => (
                                                 <div key={at.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -215,7 +215,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                                                             </div>
                                                             {at.isPrimary && (
                                                                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                                                    Giáo viên chính
+                                                                    Giáo lý viên chính
                                                                 </span>
                                                             )}
                                                         </div>
@@ -237,7 +237,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                                 {/* Available Teachers */}
                                 {availableTeachers.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo viên khả dụng:</h4>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo lý viên khả dụng:</h4>
                                         <div className="space-y-2 max-h-48 overflow-y-auto">
                                             {availableTeachers.map(teacher => (
                                                 <div key={teacher.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -272,7 +272,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                                                             type="button"
                                                             onClick={() => handleAssignTeacher(teacher.id, true)}
                                                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                                            title="Phân công làm giáo viên chính"
+                                                            title="Phân công làm giáo lý viên chính"
                                                         >
                                                             Chính
                                                         </button>

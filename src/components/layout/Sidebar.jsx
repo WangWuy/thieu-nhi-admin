@@ -26,7 +26,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
             items: [
                 { icon: Users, label: 'Người dùng', href: '/users', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
                 { icon: GraduationCap, label: 'Lớp học', href: '/classes', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
-                { icon: Users, label: 'Học sinh', href: '/students', roles: ['ban_dieu_hanh', 'phan_doan_truong', 'giao_ly_vien'] },
+                { icon: Users, label: 'Thiếu nhi', href: '/students', roles: ['ban_dieu_hanh', 'phan_doan_truong', 'giao_ly_vien'] },
             ]
         },
         {
@@ -128,7 +128,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                                         { icon: Users, label: 'Người dùng', href: '/users' },
                                         { icon: GraduationCap, label: 'Lớp học', href: '/classes' },
                                     ] : []),
-                                    { icon: Users, label: 'Học sinh', href: '/students' },
+                                    { icon: Users, label: 'Thiếu nhi', href: '/students' },
                                     { icon: UserCheck, label: 'Điểm danh', href: '/attendance' }
                                 ].map((item) => (
                                     <li key={item.href}>
