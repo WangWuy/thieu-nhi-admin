@@ -165,26 +165,14 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                 </div>
             </nav>
 
-            {/* User Info - Modern glass card */}
+            {/* Version Info */}
             <div className="p-4 border-t border-slate-200 flex-shrink-0 bg-gradient-to-r from-red-50 to-white">
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-slate-200/50 hover:shadow-xl transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-red-500 via-amber-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <span className="text-white text-sm font-semibold">
-                                {user?.fullName?.charAt(0) || 'U'}
-                            </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="text-sm font-semibold text-slate-800 truncate">
-                                {user?.saintName && `${user.saintName} `}{user?.fullName}
-                            </div>
-                            <div className="text-xs text-slate-600 truncate font-medium">{getRoleName(user?.role)}</div>
-                            {user?.department && (
-                                <div className="text-xs text-red-600 truncate font-medium bg-red-50 px-2 py-0.5 rounded-md mt-1 inline-block">
-                                    {user.department.displayName}
-                                </div>
-                            )}
-                        </div>
+                    <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Phiên bản</span>
+                        <span className="text-slate-700 font-medium bg-slate-100 px-2 py-1 rounded-full">
+                            {import.meta.env.VITE_APP_VERSION || 'v1.0.0'}
+                        </span>
                     </div>
                 </div>
             </div>
