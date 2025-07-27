@@ -1,0 +1,425 @@
+@import "tailwindcss";
+
+/* Logo Color System Variables */
+:root {
+  /* Primary colors from logo */
+  --logo-red: #ef4444;
+  --logo-red-50: #fef2f2;
+  --logo-red-100: #fee2e2;
+  --logo-red-500: #ef4444;
+  --logo-red-600: #dc2626;
+  --logo-red-700: #b91c1c;
+  --logo-red-800: #991b1b;
+  
+  --logo-amber: #f59e0b;
+  --logo-amber-50: #fffbeb;
+  --logo-amber-100: #fef3c7;
+  --logo-amber-500: #f59e0b;
+  --logo-amber-600: #d97706;
+  --logo-amber-700: #b45309;
+  
+  --logo-yellow: #eab308;
+  --logo-yellow-50: #fefce8;
+  --logo-yellow-100: #fef9c3;
+  
+  /* Supporting colors from logo */
+  --logo-green: #22c55e;
+  --logo-green-50: #f0fdf4;
+  --logo-green-500: #22c55e;
+  --logo-green-600: #16a34a;
+  
+  --logo-blue: #3b82f6;
+  --logo-blue-50: #eff6ff;
+  --logo-blue-500: #3b82f6;
+  --logo-blue-600: #2563eb;
+}
+
+/* Reset và base styles */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  color-scheme: light dark;
+  color: #7c2d12; /* amber-800 for better readability */
+  background: linear-gradient(135deg, var(--logo-red-50) 0%, var(--logo-amber-50) 50%, var(--logo-yellow-50) 100%);
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure full viewport coverage */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, var(--logo-red-50) 0%, var(--logo-amber-50) 50%, var(--logo-yellow-50) 100%);
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+/* Layout fixes */
+.min-h-screen {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Enhanced sidebar scrollbar styling */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: var(--logo-red-50);
+  border-radius: 6px;
+  margin: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--logo-red-100), #fecaca);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fecaca, var(--logo-red-200));
+}
+
+/* Prevent text selection on sidebar navigation */
+nav a, nav button {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enhanced link styles với logo theme */
+a {
+  font-weight: 500;
+  color: var(--logo-red-600);
+  text-decoration: inherit;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--logo-red-500);
+}
+
+/* Typography improvements */
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--logo-red-600), var(--logo-amber-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  color: var(--logo-red-800);
+  font-weight: 600;
+}
+
+h3 {
+  color: var(--logo-red-700);
+  font-weight: 500;
+}
+
+/* Button styles - Logo color system */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+}
+
+/* Primary buttons - Red from logo */
+button, 
+.btn-primary {
+  background: linear-gradient(135deg, var(--logo-red-500), var(--logo-red-600)) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+button:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--logo-red-600), var(--logo-red-700)) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Success buttons - Green from logo */
+.btn-success,
+.bg-green-600 {
+  background: linear-gradient(135deg, var(--logo-green-500), var(--logo-green-600)) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.btn-success:hover,
+.bg-green-600:hover {
+  background: linear-gradient(135deg, var(--logo-green-600), #15803d) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Warning buttons - Amber from logo */
+.btn-warning,
+.bg-yellow-600 {
+  background: linear-gradient(135deg, var(--logo-amber-500), var(--logo-amber-600)) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.btn-warning:hover,
+.bg-yellow-600:hover {
+  background: linear-gradient(135deg, var(--logo-amber-600), var(--logo-amber-700)) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Danger buttons - Deeper red from logo */
+.btn-danger,
+.bg-red-600 {
+  background: linear-gradient(135deg, var(--logo-red-600), var(--logo-red-700)) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.btn-danger:hover,
+.bg-red-600:hover {
+  background: linear-gradient(135deg, var(--logo-red-700), var(--logo-red-800)) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* Secondary buttons - Soft logo colors */
+.btn-secondary,
+.bg-gray-100 {
+  background: linear-gradient(135deg, var(--logo-red-50), var(--logo-amber-50)) !important;
+  color: var(--logo-red-800) !important;
+  border: 1px solid var(--logo-red-200) !important;
+}
+
+.btn-secondary:hover,
+.bg-gray-100:hover {
+  background: linear-gradient(135deg, var(--logo-red-100), var(--logo-amber-100)) !important;
+  border-color: var(--logo-red-300) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Info buttons - Blue from logo */
+.btn-info,
+.bg-cyan-600 {
+  background: linear-gradient(135deg, var(--logo-blue-500), var(--logo-blue-600)) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.btn-info:hover,
+.bg-cyan-600:hover {
+  background: linear-gradient(135deg, var(--logo-blue-600), #1d4ed8) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Override specific Tailwind classes */
+.bg-blue-600 {
+  background: linear-gradient(135deg, var(--logo-red-500), var(--logo-red-600)) !important;
+  color: white !important;
+}
+
+.bg-blue-600:hover {
+  background: linear-gradient(135deg, var(--logo-red-600), var(--logo-red-700)) !important;
+}
+
+/* Card styles */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--logo-red-100);
+  border-radius: 16px;
+  box-shadow: 0 2px 15px rgba(239, 68, 68, 0.08);
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Input styles */
+input, textarea, select {
+  border-radius: 10px;
+  border: 1px solid var(--logo-red-100);
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--logo-red-800);
+  transition: all 0.2s ease-in-out;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--logo-red-500);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+  background: white;
+}
+
+/* Focus states for all buttons */
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--logo-red-500) !important;
+  outline-offset: 2px !important;
+}
+
+/* Disabled state */
+button:disabled,
+.disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--logo-red-800);
+    background: linear-gradient(135deg, var(--logo-red-50) 0%, var(--logo-amber-50) 50%, var(--logo-yellow-50) 100%);
+  }
+  
+  a {
+    color: var(--logo-red-600);
+  }
+  
+  a:hover {
+    color: var(--logo-red-500);
+  }
+  
+  button {
+    background: linear-gradient(135deg, var(--logo-red-500), var(--logo-red-600)) !important;
+    color: white !important;
+  }
+  
+  button:hover {
+    background: linear-gradient(135deg, var(--logo-red-600), var(--logo-red-700)) !important;
+  }
+}
+
+/* Dark mode support with logo colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #fecaca;
+    background: linear-gradient(135deg, #7f1d1d 0%, #92400e 100%);
+  }
+  
+  html, body {
+    background: linear-gradient(135deg, #7f1d1d 0%, #92400e 100%);
+  }
+  
+  a {
+    color: #fca5a5;
+  }
+  
+  a:hover {
+    color: #f87171;
+  }
+  
+  .card {
+    background: rgba(127, 29, 29, 0.9);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+  
+  input, textarea, select {
+    background: rgba(127, 29, 29, 0.5);
+    border-color: var(--logo-red-500);
+    color: #fecaca;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--logo-red-400);
+    background: rgba(127, 29, 29, 0.7);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+}
+
+/* Animation utilities */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Glass morphism utility với logo colors */
+.glass {
+  background: rgba(254, 242, 242, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass {
+    background: rgba(127, 29, 29, 0.25);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+  }
+}
+
+/* Welcome card specific styling */
+.welcome-card {
+  background: linear-gradient(135deg, var(--logo-red-50), var(--logo-amber-50), var(--logo-yellow-50)) !important;
+  border: 1px solid var(--logo-red-100) !important;
+  color: var(--logo-red-800) !important;
+}
+
+.welcome-card h1 {
+  color: var(--logo-red-800) !important;
+  background: none !important;
+  -webkit-text-fill-color: unset !important;
+}
+
+.welcome-card p {
+  color: var(--logo-red-700) !important;
+}
