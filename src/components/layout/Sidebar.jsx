@@ -64,7 +64,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
             <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-600 via-amber-600 to-red-700 flex-shrink-0 shadow-lg">
                 <div className="w-12 h-12 bg-white/95 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg p-1">
                     <img 
-                        src="src/assets/images/logo.png" 
+                        src="/images/logo.png" 
                         alt="Logo Giáo xứ Thiên Ân" 
                         className="w-full h-full object-contain rounded-lg"
                     />

@@ -9,6 +9,6 @@ export default defineConfig({
     react()
   ],
   server: {
-    allowedHosts: ['']
+    allowedHosts: ['https://thieu-nhi-api.up.railway.app']
   }
 })
