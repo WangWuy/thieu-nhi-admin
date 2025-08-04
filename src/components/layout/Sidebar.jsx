@@ -6,6 +6,8 @@ import {
     BookOpen,
     UserCheck,
     BarChart3,
+    GitCompare,
+    Bell,
     Settings
 } from 'lucide-react';
 
@@ -18,7 +20,8 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
             title: 'Tổng quan',
             items: [
                 { icon: Home, label: 'Dashboard', href: '/', roles: ['ban_dieu_hanh', 'phan_doan_truong', 'giao_ly_vien'] },
-                { icon: BarChart3, label: 'Thống kê', href: '/stats', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
+                { icon: GitCompare, label: 'So sánh hiệu suất', href: '/comparison', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
+                { icon: Bell, label: 'Hệ thống cảnh báo', href: '/alerts', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
             ]
         },
         {
@@ -48,15 +51,6 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
         ...group,
         items: group.items.filter(item => item.roles.includes(user?.role))
     })).filter(group => group.items.length > 0);
-
-    const getRoleName = (role) => {
-        const roleNames = {
-            'ban_dieu_hanh': 'Ban Điều Hành',
-            'phan_doan_truong': 'Phân Đoàn Trưởng',
-            'giao_ly_vien': 'Giáo Lý Viên'
-        };
-        return roleNames[role] || role;
-    };
 
     return (
         <div className={`w-64 bg-white shadow-xl flex-shrink-0 flex flex-col h-screen transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto border-r border-slate-200`}>
@@ -96,7 +90,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                                             }}
                                             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group text-left relative overflow-hidden ${
                                                 location.pathname === item.href
-                                                    ? 'bg-gradient-to-r from-red-50 to-amber-50 text-red-700 shadow-md border border-red-100'
+                                                    ? 'bg-gradient-to-r from-red-50 to-amber-50 text-gray-900 shadow-md border border-red-100'  // Đổi text-red-700 thành text-gray-900
                                                     : 'text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-red-50 hover:text-red-600 hover:shadow-sm'
                                             }`}
                                         >
@@ -124,7 +118,9 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                                 {[
                                     { icon: Home, label: 'Dashboard', href: '/' },
                                     ...(user?.role !== 'giao_ly_vien' ? [
-                                        { icon: BarChart3, label: 'Thống kê', href: '/stats' },
+                                        { icon: BarChart3, label: 'Thống kê nâng cao', href: '/stats' },
+                                        { icon: GitCompare, label: 'So sánh hiệu suất', href: '/comparison' },
+                                        { icon: Bell, label: 'Hệ thống cảnh báo', href: '/alerts' },
                                         { icon: Users, label: 'Người dùng', href: '/users' },
                                         { icon: GraduationCap, label: 'Lớp học', href: '/classes' },
                                     ] : []),
@@ -143,7 +139,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                                             }}
                                             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group text-left relative overflow-hidden ${
                                                 location.pathname === item.href
-                                                    ? 'bg-gradient-to-r from-red-50 to-amber-50 text-red-700 shadow-md border border-red-100'
+                                                    ? 'bg-gradient-to-r from-red-50 to-amber-50 text-gray-900 shadow-md border border-red-100'  // Đổi text-red-700 thành text-gray-900
                                                     : 'text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-red-50 hover:text-red-600 hover:shadow-sm'
                                             }`}
                                         >
@@ -156,6 +152,12 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
                                                     : 'text-slate-400 group-hover:text-red-500 group-hover:scale-105'
                                             }`} />
                                             <span className="font-medium">{item.label}</span>
+                                            {/* Badge for new features in fallback menu too */}
+                                            {(item.href === '/stats' || item.href === '/comparison' || item.href === '/alerts') && (
+                                                <span className="ml-auto bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                                    Mới
+                                                </span>
+                                            )}
                                         </button>
                                     </li>
                                 ))}

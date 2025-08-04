@@ -7,9 +7,10 @@ import UserListPage from './components/users/UserListPage';
 import ClassListPage from './components/classes/ClassListPage';
 import StudentListPage from './components/students/StudentListPage';
 import AttendancePage from './components/attendance/AttendancePage';
-import AttendanceStatsPage from './components/attendance/AttendanceStatsPage';
+import ComparisonToolsPage from './components/reports/ComparisonToolsPage'; 
 import ReportsPage from './components/reports/ReportsPage';
 import SettingsPage from './components/settings/SettingsPage';
+import AlertSystemPage from './components/alerts/AlertSystemPage';
 import { authService } from './services/authService';
 
 // Protected Route Component
@@ -90,11 +91,21 @@ function App() {
         />
 
         <Route
-          path="/stats"
+          path="/alerts"
           element={
             <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
               <AppLayout user={user} onLogout={handleLogout}>
-                <AttendanceStatsPage />
+                <AlertSystemPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/comparison"
+          element={
+            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <ComparisonToolsPage />
               </AppLayout>
             </ProtectedRoute>
           }

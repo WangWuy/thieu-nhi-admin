@@ -23,8 +23,26 @@ export const studentService = {
         return apiService.delete(`/students/${id}`);
     },
 
-    async getStudentsByClass(classId) {
-        return apiService.get(`/classes/${classId}/students`);
+    async getStudentsByClass(classId, includeScores = false) {
+        const params = { includeScores: includeScores.toString() };
+        return apiService.get(`/classes/${classId}/students`, params);
+    },
+
+    // NEW: Score management operations
+    async getStudentScoreDetails(id) {
+        return apiService.get(`/students/${id}/score-details`);
+    },
+
+    async updateStudentScores(id, scoreData) {
+        return apiService.put(`/students/${id}/scores`, scoreData);
+    },
+
+    async bulkUpdateScores(updates) {
+        return apiService.post('/students/bulk-update-scores', { updates });
+    },
+
+    async getClassScoreStats(classId) {
+        return apiService.get(`/classes/${classId}/score-stats`);
     },
 
     // Import operations (delegated to importService)
@@ -106,7 +124,7 @@ export const studentService = {
         return { results };
     },
 
-    // Export operations
+    // Export operations - UPDATED to include new score fields
     async exportToExcel(filters = {}) {
         try {
             // Get students data with filters
@@ -117,7 +135,7 @@ export const studentService = {
 
             const students = studentsResponse.students || studentsResponse;
 
-            // Convert to CSV format for download
+            // Convert to CSV format for download - UPDATED with new score fields
             const csvData = students.map(student => ({
                 'Mã TN': student.studentCode,
                 'Tên thánh': student.saintName || '',
@@ -129,8 +147,17 @@ export const studentService = {
                 'Địa chỉ': student.address || '',
                 'Lớp': student.class?.name || '',
                 'Ngành': student.class?.department?.displayName || '',
-                'Điểm chuyên cần': student.attendanceScore || 0,
-                'Điểm giáo lý': student.studyScore || 0
+                // NEW: Updated score fields
+                'Số buổi T5': student.thursdayAttendanceCount || 0,
+                'Số buổi CN': student.sundayAttendanceCount || 0,
+                'Điểm điểm danh TB': student.attendanceAverage || 0,
+                'Điểm 45\' HK1': student.study45Hk1 || 0,
+                'Điểm thi HK1': student.examHk1 || 0,
+                'Điểm 45\' HK2': student.study45Hk2 || 0,
+                'Điểm thi HK2': student.examHk2 || 0,
+                'Điểm giáo lý TB': student.studyAverage || 0,
+                'Điểm tổng TB': student.finalAverage || 0,
+                'Năm học': student.academicYear?.name || ''
             }));
 
             // Create and download CSV
@@ -165,7 +192,7 @@ export const studentService = {
         }
     },
 
-    // Statistics and analytics
+    // Statistics and analytics - UPDATED to include new score fields
     async getImportStats() {
         return importService.getImportStats();
     },
@@ -174,13 +201,22 @@ export const studentService = {
         try {
             const students = await this.getStudents(filters);
 
-            // Calculate basic statistics
+            // Calculate basic statistics - UPDATED with new score fields
             const stats = {
                 total: students.pagination?.total || students.length,
                 byDepartment: {},
                 byClass: {},
+                byAcademicYear: {},
+                // UPDATED: New score statistics
                 averageAttendanceScore: 0,
-                averageStudyScore: 0
+                averageStudyScore: 0,
+                averageFinalScore: 0,
+                scoreDistribution: {
+                    excellent: 0, // >= 8.5
+                    good: 0,      // 7.0 - 8.4
+                    average: 0,   // 5.5 - 6.9
+                    weak: 0       // < 5.5
+                }
             };
 
             if (students.students) {
@@ -196,16 +232,37 @@ export const studentService = {
                     stats.byClass[className] = (stats.byClass[className] || 0) + 1;
                 });
 
-                // Calculate averages
-                const totalAttendance = students.students.reduce((sum, s) => sum + (s.attendanceScore || 0), 0);
-                const totalStudy = students.students.reduce((sum, s) => sum + (s.studyScore || 0), 0);
+                // Group by academic year
+                students.students.forEach(student => {
+                    const academicYear = student.academicYear?.name || 'Chưa có năm học';
+                    stats.byAcademicYear[academicYear] = (stats.byAcademicYear[academicYear] || 0) + 1;
+                });
 
-                stats.averageAttendanceScore = students.students.length > 0
-                    ? (totalAttendance / students.students.length).toFixed(1)
-                    : 0;
-                stats.averageStudyScore = students.students.length > 0
-                    ? (totalStudy / students.students.length).toFixed(1)
-                    : 0;
+                // Calculate averages - UPDATED with new score fields
+                const totalAttendance = students.students.reduce((sum, s) => sum + (parseFloat(s.attendanceAverage) || 0), 0);
+                const totalStudy = students.students.reduce((sum, s) => sum + (parseFloat(s.studyAverage) || 0), 0);
+                const totalFinal = students.students.reduce((sum, s) => sum + (parseFloat(s.finalAverage) || 0), 0);
+
+                const studentCount = students.students.length;
+                if (studentCount > 0) {
+                    stats.averageAttendanceScore = (totalAttendance / studentCount).toFixed(1);
+                    stats.averageStudyScore = (totalStudy / studentCount).toFixed(1);
+                    stats.averageFinalScore = (totalFinal / studentCount).toFixed(1);
+
+                    // Calculate score distribution based on final average
+                    students.students.forEach(student => {
+                        const finalScore = parseFloat(student.finalAverage) || 0;
+                        if (finalScore >= 8.5) {
+                            stats.scoreDistribution.excellent++;
+                        } else if (finalScore >= 7.0) {
+                            stats.scoreDistribution.good++;
+                        } else if (finalScore >= 5.5) {
+                            stats.scoreDistribution.average++;
+                        } else {
+                            stats.scoreDistribution.weak++;
+                        }
+                    });
+                }
             }
 
             return stats;

@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Users, GraduationCap, BookOpen, UserCheck, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, GraduationCap, BookOpen, UserCheck, TrendingUp, AlertCircle, RefreshCw, Calendar, Award, BarChart3 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboardService';
+import { academicYearService } from '../../services/academicYearService';
 
 const Dashboard = ({ user }) => {
     const [stats, setStats] = useState(null);
+    const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         fetchDashboardData();
+        fetchCurrentAcademicYear();
     }, []);
+
+    const fetchCurrentAcademicYear = async () => {
+        try {
+            const yearData = await academicYearService.getCurrentAcademicYear();
+            setCurrentAcademicYear(yearData);
+        } catch (error) {
+            console.warn('Could not fetch current academic year:', error);
+        }
+    };
 
     const fetchDashboardData = async () => {
         try {
@@ -20,16 +32,58 @@ const Dashboard = ({ user }) => {
             const mockStats = {
                 summary: {
                     totalDepartments: 4,
-                    totalClasses: 0,
+                    totalClasses: 48,
                     totalStudents: 0,
                     totalTeachers: 0
                 },
                 departmentStats: [
-                    { id: 1, displayName: 'Chiên', totalClasses: 0, totalStudents: 0, totalTeachers: 0 },
-                    { id: 2, displayName: 'Ấu', totalClasses: 0, totalStudents: 0, totalTeachers: 0 },
-                    { id: 3, displayName: 'Thiếu', totalClasses: 0, totalStudents: 0, totalTeachers: 0 },
-                    { id: 4, displayName: 'Nghĩa', totalClasses: 0, totalStudents: 0, totalTeachers: 0 }
-                ]
+                    { 
+                        id: 1, 
+                        displayName: 'Chiên Con', 
+                        totalClasses: 4, 
+                        totalStudents: 0, 
+                        totalTeachers: 0,
+                        averageAttendance: 0,
+                        averageStudyScore: 0
+                    },
+                    { 
+                        id: 2, 
+                        displayName: 'Ấu Nhi', 
+                        totalClasses: 15, 
+                        totalStudents: 0, 
+                        totalTeachers: 0,
+                        averageAttendance: 0,
+                        averageStudyScore: 0
+                    },
+                    { 
+                        id: 3, 
+                        displayName: 'Thiếu Nhi', 
+                        totalClasses: 15, 
+                        totalStudents: 0, 
+                        totalTeachers: 0,
+                        averageAttendance: 0,
+                        averageStudyScore: 0
+                    },
+                    { 
+                        id: 4, 
+                        displayName: 'Nghĩa Sĩ', 
+                        totalClasses: 14, 
+                        totalStudents: 0, 
+                        totalTeachers: 0,
+                        averageAttendance: 0,
+                        averageStudyScore: 0
+                    }
+                ],
+                recentAttendance: {
+                    thursday: { present: 0, absent: 0 },
+                    sunday: { present: 0, absent: 0 }
+                },
+                scoreOverview: {
+                    totalStudentsWithScores: 0,
+                    averageAttendanceScore: 0,
+                    averageStudyScore: 0,
+                    averageFinalScore: 0
+                }
             };
 
             try {
@@ -51,6 +105,7 @@ const Dashboard = ({ user }) => {
 
     const handleRetry = () => {
         fetchDashboardData();
+        fetchCurrentAcademicYear();
     };
 
     if (loading) {
@@ -87,14 +142,20 @@ const Dashboard = ({ user }) => {
         );
     }
 
-    const StatCard = ({ icon: Icon, title, value, color, description }) => (
+    const StatCard = ({ icon: Icon, title, value, color, description, subValue, subLabel }) => (
         <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100 hover:shadow-md hover:border-red-200 transition-all">
             <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                     <p className="text-sm font-medium text-red-600">{title}</p>
                     <p className={`text-2xl font-bold mt-2 ${color}`}>{value}</p>
                     {description && (
                         <p className="text-xs text-red-500 mt-1">{description}</p>
+                    )}
+                    {subValue !== undefined && (
+                        <div className="mt-2 pt-2 border-t border-red-100">
+                            <p className="text-xs text-red-600">{subLabel}</p>
+                            <p className="text-sm font-semibold text-red-700">{subValue}</p>
+                        </div>
                     )}
                 </div>
                 <Icon className={`w-8 h-8 ${color.replace('text-', 'text-').replace('-600', '-500')}`} />
@@ -104,16 +165,32 @@ const Dashboard = ({ user }) => {
 
     return (
         <div className="space-y-6">
-            {/* Welcome Card - Logo colors */}
+            {/* Welcome Card with Academic Year Info */}
             <div className="bg-gradient-to-br from-red-50 via-amber-50 to-yellow-50 rounded-xl p-6 border border-red-100 shadow-sm">
-                <h1 className="text-xl font-semibold mb-2 text-red-800">
-                    Chào mừng, {user.saintName && `${user.saintName} `}{user.fullName}!
-                </h1>
-                <p className="text-red-700">
-                    {user.role === 'ban_dieu_hanh' && 'Quản lý toàn bộ hệ thống thiếu nhi'}
-                    {user.role === 'phan_doan_truong' && `Quản lý ngành ${user.department?.displayName}`}
-                    {user.role === 'giao_ly_vien' && 'Quản lý lớp học và điểm danh'}
-                </p>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 className="text-xl font-semibold mb-2 text-red-800">
+                            Chào mừng, {user.saintName && `${user.saintName} `}{user.fullName}!
+                        </h1>
+                        <p className="text-red-700">
+                            {user.role === 'ban_dieu_hanh' && 'Quản lý toàn bộ hệ thống thiếu nhi'}
+                            {user.role === 'phan_doan_truong' && `Quản lý ngành ${user.department?.displayName}`}
+                            {user.role === 'giao_ly_vien' && 'Quản lý lớp học và điểm danh'}
+                        </p>
+                    </div>
+                    {currentAcademicYear && (
+                        <div className="mt-4 md:mt-0 bg-white/70 rounded-lg p-3 border border-red-200">
+                            <div className="flex items-center gap-2 text-red-700">
+                                <Calendar className="w-4 h-4" />
+                                <div>
+                                    <p className="text-xs font-medium">Năm học hiện tại</p>
+                                    <p className="text-sm font-bold">{currentAcademicYear.name}</p>
+                                    <p className="text-xs">{currentAcademicYear.totalWeeks} tuần</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* API Status Warning */}
@@ -127,7 +204,7 @@ const Dashboard = ({ user }) => {
                 </div>
             )}
 
-            {/* Stats Cards */}
+            {/* Main Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     icon={BookOpen}
@@ -139,7 +216,7 @@ const Dashboard = ({ user }) => {
                 <StatCard
                     icon={GraduationCap}
                     title="Tổng số lớp"
-                    value={stats?.summary?.totalClasses || 0}
+                    value={stats?.summary?.totalClasses || 48}
                     color="text-green-600"
                     description="Đang hoạt động"
                 />
@@ -159,11 +236,40 @@ const Dashboard = ({ user }) => {
                 />
             </div>
 
-            {/* Department Stats */}
+            {/* Score Overview - Only for admin */}
+            {user.role === 'ban_dieu_hanh' && stats?.scoreOverview && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCard
+                        icon={Award}
+                        title="Điểm điểm danh TB"
+                        value={stats.scoreOverview.averageAttendanceScore || '0.0'}
+                        color="text-blue-600"
+                        description="Trung bình toàn trường"
+                        subValue={`${stats.scoreOverview.totalStudentsWithScores || 0} học sinh`}
+                        subLabel="Có điểm"
+                    />
+                    <StatCard
+                        icon={BookOpen}
+                        title="Điểm giáo lý TB"
+                        value={stats.scoreOverview.averageStudyScore || '0.0'}
+                        color="text-green-600"
+                        description="Trung bình toàn trường"
+                    />
+                    <StatCard
+                        icon={TrendingUp}
+                        title="Điểm tổng TB"
+                        value={stats.scoreOverview.averageFinalScore || '0.0'}
+                        color="text-purple-600"
+                        description="Trung bình toàn trường"
+                    />
+                </div>
+            )}
+
+            {/* Department Stats with Scores */}
             {user.role === 'ban_dieu_hanh' && stats?.departmentStats && (
                 <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
                     <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-800">
-                        <TrendingUp className="w-5 h-5 text-red-600" />
+                        <BarChart3 className="w-5 h-5 text-red-600" />
                         Thống kê theo ngành
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -183,6 +289,22 @@ const Dashboard = ({ user }) => {
                                         <span className="text-red-600">Giáo lý viên:</span>
                                         <span className="font-medium text-red-800">{dept.totalTeachers}</span>
                                     </div>
+                                    
+                                    {/* Score Stats */}
+                                    <div className="pt-2 mt-2 border-t border-red-100">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-blue-600">Điểm danh TB:</span>
+                                            <span className="font-medium text-blue-700">
+                                                {dept.averageAttendance ? dept.averageAttendance.toFixed(1) : '0.0'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-green-600">Học tập TB:</span>
+                                            <span className="font-medium text-green-700">
+                                                {dept.averageStudyScore ? dept.averageStudyScore.toFixed(1) : '0.0'}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -190,7 +312,7 @@ const Dashboard = ({ user }) => {
                 </div>
             )}
 
-            {/* Additional Stats for Admin */}
+            {/* Attendance Stats */}
             {user.role === 'ban_dieu_hanh' && stats?.recentAttendance && (
                 <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
                     <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-800">

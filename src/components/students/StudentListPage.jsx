@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import StudentForm from './StudentForm';
@@ -20,6 +20,10 @@ const StudentListPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
+    
+    // Score editing states
+    const [editingScores, setEditingScores] = useState({}); // { studentId: { study45Hk1: value, ... } }
+    const [savingScores, setSavingScores] = useState({}); // { studentId: true/false }
 
     useEffect(() => {
         fetchClasses();
@@ -87,6 +91,93 @@ const StudentListPage = () => {
         }
     };
 
+    // Score editing functions
+    const startEditingScores = (studentId, currentScores) => {
+        setEditingScores(prev => ({
+            ...prev,
+            [studentId]: {
+                study45Hk1: currentScores.study45Hk1 || 0,
+                examHk1: currentScores.examHk1 || 0,
+                study45Hk2: currentScores.study45Hk2 || 0,
+                examHk2: currentScores.examHk2 || 0
+            }
+        }));
+    };
+
+    const cancelEditingScores = (studentId) => {
+        setEditingScores(prev => {
+            const newState = { ...prev };
+            delete newState[studentId];
+            return newState;
+        });
+    };
+
+    const updateScoreValue = (studentId, field, value) => {
+        setEditingScores(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [field]: value
+            }
+        }));
+    };
+
+    const saveScores = async (studentId) => {
+        try {
+            setSavingScores(prev => ({ ...prev, [studentId]: true }));
+            
+            const scoreData = editingScores[studentId];
+            await studentService.updateStudentScores(studentId, scoreData);
+            
+            // Update local state
+            setStudents(prev => prev.map(student => {
+                if (student.id === studentId) {
+                    return {
+                        ...student,
+                        ...scoreData,
+                        // Điểm sẽ được tính lại ở backend
+                    };
+                }
+                return student;
+            }));
+
+            // Cancel editing mode
+            cancelEditingScores(studentId);
+            
+            // Refresh to get updated calculated scores
+            fetchStudents();
+        } catch (err) {
+            alert('Lỗi khi lưu điểm: ' + err.message);
+        } finally {
+            setSavingScores(prev => ({ ...prev, [studentId]: false }));
+        }
+    };
+
+    const ScoreEditCell = ({ studentId, field, value, label }) => {
+        const isEditing = editingScores[studentId];
+        
+        if (isEditing) {
+            return (
+                <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    value={editingScores[studentId][field]}
+                    onChange={(e) => updateScoreValue(studentId, field, parseFloat(e.target.value) || 0)}
+                    className="w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.0"
+                />
+            );
+        }
+
+        return (
+            <span className="text-sm font-medium text-gray-900">
+                {parseFloat(value || 0).toFixed(1)}
+            </span>
+        );
+    };
+
     if (loading) {
         return <div className="p-4">Đang tải...</div>;
     }
@@ -134,24 +225,42 @@ const StudentListPage = () => {
                 </div>
             </div>
 
-            {/* Student Table */}
+            {/* Student Table with Scores */}
             <div className="bg-white rounded-lg shadow-sm border overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Thiếu nhi
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Mã số
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Lớp / Tuổi
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Liên hệ
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                            
+                            {/* Score columns */}
+                            <th className="px-3 py-3 text-center text-xs font-medium text-blue-600 uppercase border-l border-blue-200">
+                                <div className="flex flex-col items-center">
+                                    <Award className="w-4 h-4 mb-1" />
+                                    <span>Điểm Giáo Lý</span>
+                                </div>
+                            </th>
+                            <th className="px-3 py-3 text-center text-xs font-medium text-green-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>Điểm danh</span>
+                                    <span className="text-[10px] font-normal">(Tự động)</span>
+                                </div>
+                            </th>
+                            <th className="px-3 py-3 text-center text-xs font-medium text-purple-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>Tổng TB</span>
+                                    <span className="text-[10px] font-normal">(Tự động)</span>
+                                </div>
+                            </th>
+                            
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                                 Thao tác
                             </th>
                         </tr>
@@ -159,76 +268,168 @@ const StudentListPage = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {students.map((student) => {
                             const age = calculateAge(student.birthDate);
+                            const isEditingThisStudent = editingScores[student.id];
+                            const isSaving = savingScores[student.id];
+                            
                             return (
-                                <tr key={student.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
+                                <tr key={student.id} className={`hover:bg-gray-50 ${isEditingThisStudent ? 'bg-blue-50' : ''}`}>
+                                    <td className="px-4 py-4">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                                                <GraduationCap className="w-5 h-5 text-white" />
+                                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                                <GraduationCap className="w-4 h-4 text-white" />
                                             </div>
-                                            <div className="ml-4">
+                                            <div className="ml-3">
                                                 <div className="text-sm font-medium text-gray-900">
                                                     {student.saintName && `${student.saintName} `}{student.fullName}
                                                 </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {student.birthDate ? new Date(student.birthDate).toLocaleDateString('vi-VN') : 'Chưa có ngày sinh'}
+                                                <div className="text-xs text-gray-500">
+                                                    {student.studentCode}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-medium text-gray-900">{student.studentCode}</div>
-                                    </td>
-                                    
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-4">
                                         <div className="text-sm font-medium text-gray-900">{student.class.name}</div>
                                         {age && <span className="inline-block px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">{age} tuổi</span>}
                                     </td>
                                     
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm space-y-1">
+                                    <td className="px-3 py-4">
+                                        <div className="text-xs space-y-1">
                                             {student.parentPhone1 && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-gray-700 font-medium">SĐT 1:</span>
-                                                    <span className="text-gray-900 font-semibold">{student.parentPhone1}</span>
-                                                </div>
+                                                <div className="text-gray-900 font-medium">{student.parentPhone1}</div>
                                             )}
                                             {student.parentPhone2 && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-gray-700 font-medium">SĐT 2:</span>
-                                                    <span className="text-gray-900 font-semibold">{student.parentPhone2}</span>
-                                                </div>
+                                                <div className="text-gray-700">{student.parentPhone2}</div>
                                             )}
-                                            {student.phoneNumber && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-blue-700 font-medium">SĐT TN:</span>
-                                                    <span className="text-blue-600 font-semibold">{student.phoneNumber}</span>
-                                                </div>
-                                            )}
-                                            {!student.parentPhone1 && !student.parentPhone2 && !student.phoneNumber && (
+                                            {!student.parentPhone1 && !student.parentPhone2 && (
                                                 <span className="text-gray-400 italic">Chưa có SĐT</span>
                                             )}
                                         </div>
                                     </td>
                                     
-                                    <td className="px-6 py-4 text-right">
+                                    {/* Score columns */}
+                                    <td className="px-3 py-4 border-l border-blue-100">
+                                        <div className="space-y-2">
+                                            {/* Editable scores */}
+                                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                                <div className="text-center">
+                                                    <div className="text-gray-600 mb-1">45' HK1</div>
+                                                    <ScoreEditCell 
+                                                        studentId={student.id}
+                                                        field="study45Hk1"
+                                                        value={student.study45Hk1}
+                                                        label="45' HK1"
+                                                    />
+                                                </div>
+                                                <div className="text-center">
+                                                    <div className="text-gray-600 mb-1">Thi HK1</div>
+                                                    <ScoreEditCell 
+                                                        studentId={student.id}
+                                                        field="examHk1"
+                                                        value={student.examHk1}
+                                                        label="Thi HK1"
+                                                    />
+                                                </div>
+                                                <div className="text-center">
+                                                    <div className="text-gray-600 mb-1">45' HK2</div>
+                                                    <ScoreEditCell 
+                                                        studentId={student.id}
+                                                        field="study45Hk2"
+                                                        value={student.study45Hk2}
+                                                        label="45' HK2"
+                                                    />
+                                                </div>
+                                                <div className="text-center">
+                                                    <div className="text-gray-600 mb-1">Thi HK2</div>
+                                                    <ScoreEditCell 
+                                                        studentId={student.id}
+                                                        field="examHk2"
+                                                        value={student.examHk2}
+                                                        label="Thi HK2"
+                                                    />
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Study average (calculated) */}
+                                            <div className="text-center pt-2 border-t border-blue-200">
+                                                <div className="text-xs text-blue-600 font-medium">TB Giáo lý</div>
+                                                <div className="text-sm font-bold text-blue-700">
+                                                    {parseFloat(student.studyAverage || 0).toFixed(1)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <td className="px-3 py-4 text-center">
+                                        <div className="space-y-2">
+                                            <div className="text-xs text-gray-600">
+                                                T5: {student.thursdayAttendanceCount || 0} | CN: {student.sundayAttendanceCount || 0}
+                                            </div>
+                                            <div className="text-sm font-bold text-green-700">
+                                                {parseFloat(student.attendanceAverage || 0).toFixed(1)}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <td className="px-3 py-4 text-center">
+                                        <div className="text-lg font-bold text-purple-700">
+                                            {parseFloat(student.finalAverage || 0).toFixed(1)}
+                                        </div>
+                                    </td>
+                                    
+                                    <td className="px-4 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedStudent(student);
-                                                    setShowEditModal(true);
-                                                }}
-                                                className="text-blue-600 hover:text-blue-800"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteStudent(student.id)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {isEditingThisStudent ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => saveScores(student.id)}
+                                                        disabled={isSaving}
+                                                        className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                                                        title="Lưu điểm"
+                                                    >
+                                                        {isSaving ? (
+                                                            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                                                        ) : (
+                                                            <Save className="w-4 h-4" />
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => cancelEditingScores(student.id)}
+                                                        className="text-gray-600 hover:text-gray-800"
+                                                        title="Hủy"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => startEditingScores(student.id, student)}
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                        title="Sửa điểm"
+                                                    >
+                                                        <Award className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedStudent(student);
+                                                            setShowEditModal(true);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                        title="Sửa thông tin"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteStudent(student.id)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                        title="Xóa"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

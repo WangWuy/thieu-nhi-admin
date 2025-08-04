@@ -8,5 +8,15 @@ export const dashboardService = {
 
     async getQuickCounts() {
         return api.get('/dashboard/quick-counts');
+    },
+
+    // NEW: Get score overview for dashboard
+    async getScoreOverview(params = {}) {
+        return api.get('/dashboard/score-overview', params);
+    },
+
+    // NEW: Get department score comparison
+    async getDepartmentScoreComparison(params = {}) {
+        return api.get('/dashboard/department-scores', params);
     }
 };
