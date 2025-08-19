@@ -8,12 +8,14 @@ import {
     Filter,
     ChevronLeft,
     ChevronRight,
-    UserX
+    UserX,
+    Upload
 } from 'lucide-react';
 import { userService } from '../../services/userService';
 import { USER_ROLES } from '../../utils/constants';
 import { getRoleName } from '../../utils/helpers';
 import UserModal from './UserModal';
+import UserImportModal from './UserImportModal';
 
 const UserListPage = () => {
     const [users, setUsers] = useState([]);
@@ -29,6 +31,7 @@ const UserListPage = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -108,6 +111,11 @@ const UserListPage = () => {
         setShowEditModal(false);
     };
 
+    const handleImportSuccess = () => {
+        fetchUsers(); // Refresh user list after successful import
+        setShowImportModal(false);
+    };
+
     if (loading) {
         return (
             <div className="space-y-4">
@@ -150,13 +158,22 @@ const UserListPage = () => {
                             <option value={USER_ROLES.GIAO_LY_VIEN}>Giáo Lý Viên</option>
                         </select>
                     </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Thêm người dùng
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowImportModal(true)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                        >
+                            <Upload className="w-4 h-4" />
+                            Import Excel
+                        </button>
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Thêm người dùng
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -313,6 +330,12 @@ const UserListPage = () => {
                 isOpen={showEditModal}
                 onClose={handleModalClose}
                 onSave={handleModalSave}
+            />
+
+            <UserImportModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                onSuccess={handleImportSuccess}
             />
         </div>
     );

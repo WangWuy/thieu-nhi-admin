@@ -206,14 +206,14 @@ const StudentListPage = () => {
                             <option key={cls.id} value={cls.id}>{cls.name}</option>
                         ))}
                     </select>
-                    {/* <div className="flex gap-2">
-                        <button
+                    <div className="flex gap-2">
+                        {/* <button
                             onClick={() => setShowImportModal(true)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                         >
                             <Upload className="w-4 h-4" />
                             Import
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -221,7 +221,7 @@ const StudentListPage = () => {
                             <Plus className="w-4 h-4" />
                             Thêm
                         </button>
-                    </div> */}
+                    </div>
                 </div>
             </div>
 
