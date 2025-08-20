@@ -117,14 +117,14 @@ const LoginPage = ({ onLogin }) => {
                 </form>
 
                 {/* Demo Credentials */}
-                <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                {/* <div className="mt-8 p-4 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-2">Tài khoản demo:</p>
                     <div className="text-xs space-y-1">
                         <div><span className="font-medium">Admin:</span> admin / admin123</div>
                         <div><span className="font-medium">PDT Chiên:</span> pdt_chien / 123456</div>
                         <div><span className="font-medium">GLV:</span> glv_chien_1 / 123456</div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );
