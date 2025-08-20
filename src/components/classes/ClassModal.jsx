@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, UserPlus, UserMinus } from 'lucide-react';
+import { X, Save, UserMinus, Search } from 'lucide-react';
 import { classService } from '../../services/classService';
 import { departmentService } from '../../services/departmentService';
 import { userService } from '../../services/userService';
@@ -12,6 +12,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
     const [departments, setDepartments] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [assignedTeachers, setAssignedTeachers] = useState([]);
+    const [teacherSearch, setTeacherSearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -33,6 +34,7 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                 setAssignedTeachers([]);
             }
             setError('');
+            setTeacherSearch('');
         }
     }, [isOpen, classItem]);
 
@@ -121,9 +123,22 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
         }
     };
 
-    const availableTeachers = teachers.filter(teacher =>
-        !assignedTeachers.some(at => at.userId === teacher.id)
-    );
+    // Filter available teachers based on assignment and search
+    const availableTeachers = teachers.filter(teacher => {
+        const isNotAssigned = !assignedTeachers.some(at => at.userId === teacher.id);
+        const matchesSearch = teacherSearch === '' || 
+            teacher.fullName.toLowerCase().includes(teacherSearch.toLowerCase()) ||
+            (teacher.saintName && teacher.saintName.toLowerCase().includes(teacherSearch.toLowerCase()));
+        
+        return isNotAssigned && matchesSearch;
+    });
+
+    // Filter assigned teachers based on search
+    const filteredAssignedTeachers = assignedTeachers.filter(at => {
+        if (teacherSearch === '') return true;
+        return at.user.fullName.toLowerCase().includes(teacherSearch.toLowerCase()) ||
+               (at.user.saintName && at.user.saintName.toLowerCase().includes(teacherSearch.toLowerCase()));
+    });
 
     if (!isOpen) return null;
 
@@ -196,12 +211,26 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                             <div className="space-y-4">
                                 <h3 className="text-lg font-medium text-gray-900">Phân công giáo lý viên</h3>
 
+                                {/* Teacher Search */}
+                                <div className="relative">
+                                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Tìm kiếm giáo lý viên..."
+                                        value={teacherSearch}
+                                        onChange={(e) => setTeacherSearch(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent search-input"
+                                    />
+                                </div>
+
                                 {/* Assigned Teachers */}
                                 {assignedTeachers.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo lý viên đã phân công:</h4>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                            Giáo lý viên đã phân công ({assignedTeachers.length}):
+                                        </h4>
                                         <div className="space-y-2">
-                                            {assignedTeachers.map(at => (
+                                            {filteredAssignedTeachers.map(at => (
                                                 <div key={at.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -231,13 +260,21 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                                                 </div>
                                             ))}
                                         </div>
+                                        
+                                        {teacherSearch && filteredAssignedTeachers.length === 0 && assignedTeachers.length > 0 && (
+                                            <div className="text-sm text-gray-500 text-center py-4">
+                                                Không tìm thấy giáo lý viên đã phân công phù hợp
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
                                 {/* Available Teachers */}
                                 {availableTeachers.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Giáo lý viên khả dụng:</h4>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                            Giáo lý viên khả dụng ({availableTeachers.length}):
+                                        </h4>
                                         <div className="space-y-2 max-h-48 overflow-y-auto">
                                             {availableTeachers.map(teacher => (
                                                 <div key={teacher.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -280,6 +317,20 @@ const ClassModal = ({ classItem, isOpen, onClose, onSave }) => {
                                                 </div>
                                             ))}
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* No teachers found */}
+                                {teacherSearch && availableTeachers.length === 0 && teachers.length > 0 && (
+                                    <div className="text-sm text-gray-500 text-center py-4">
+                                        Không tìm thấy giáo lý viên khả dụng phù hợp
+                                    </div>
+                                )}
+
+                                {/* No teachers at all */}
+                                {teachers.length === 0 && (
+                                    <div className="text-sm text-gray-500 text-center py-4">
+                                        Chưa có giáo lý viên trong hệ thống
                                     </div>
                                 )}
                             </div>

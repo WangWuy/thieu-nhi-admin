@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award } from 'lucide-react';
+import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import StudentForm from './StudentForm';
@@ -20,7 +20,7 @@ const StudentListPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
-    
+
     // Score editing states
     const [editingScores, setEditingScores] = useState({}); // { studentId: { study45Hk1: value, ... } }
     const [savingScores, setSavingScores] = useState({}); // { studentId: true/false }
@@ -125,10 +125,10 @@ const StudentListPage = () => {
     const saveScores = async (studentId) => {
         try {
             setSavingScores(prev => ({ ...prev, [studentId]: true }));
-            
+
             const scoreData = editingScores[studentId];
             await studentService.updateStudentScores(studentId, scoreData);
-            
+
             // Update local state
             setStudents(prev => prev.map(student => {
                 if (student.id === studentId) {
@@ -143,7 +143,7 @@ const StudentListPage = () => {
 
             // Cancel editing mode
             cancelEditingScores(studentId);
-            
+
             // Refresh to get updated calculated scores
             fetchStudents();
         } catch (err) {
@@ -155,7 +155,7 @@ const StudentListPage = () => {
 
     const ScoreEditCell = ({ studentId, field, value, label }) => {
         const isEditing = editingScores[studentId];
-        
+
         if (isEditing) {
             return (
                 <input
@@ -188,13 +188,16 @@ const StudentListPage = () => {
             <div className="bg-white p-4 rounded-lg shadow-sm border">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm..."
-                            value={filters.search}
-                            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
-                            className="w-full px-3 py-2 border rounded-lg"
-                        />
+                        <div className="relative">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm..."
+                                value={filters.search}
+                                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+                                className="w-full pl-11 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 search-input"
+                            />
+                        </div>
                     </div>
                     <select
                         value={filters.classFilter}
@@ -239,7 +242,7 @@ const StudentListPage = () => {
                             <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Liên hệ
                             </th>
-                            
+
                             {/* Score columns */}
                             <th className="px-3 py-3 text-center text-xs font-medium text-blue-600 uppercase border-l border-blue-200">
                                 <div className="flex flex-col items-center">
@@ -259,7 +262,7 @@ const StudentListPage = () => {
                                     <span className="text-[10px] font-normal">(Tự động)</span>
                                 </div>
                             </th>
-                            
+
                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                                 Thao tác
                             </th>
@@ -270,7 +273,7 @@ const StudentListPage = () => {
                             const age = calculateAge(student.birthDate);
                             const isEditingThisStudent = editingScores[student.id];
                             const isSaving = savingScores[student.id];
-                            
+
                             return (
                                 <tr key={student.id} className={`hover:bg-gray-50 ${isEditingThisStudent ? 'bg-blue-50' : ''}`}>
                                     <td className="px-4 py-4">
@@ -288,12 +291,12 @@ const StudentListPage = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    
+
                                     <td className="px-3 py-4">
                                         <div className="text-sm font-medium text-gray-900">{student.class.name}</div>
                                         {age && <span className="inline-block px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">{age} tuổi</span>}
                                     </td>
-                                    
+
                                     <td className="px-3 py-4">
                                         <div className="text-xs space-y-1">
                                             {student.parentPhone1 && (
@@ -307,7 +310,7 @@ const StudentListPage = () => {
                                             )}
                                         </div>
                                     </td>
-                                    
+
                                     {/* Score columns */}
                                     <td className="px-3 py-4 border-l border-blue-100">
                                         <div className="space-y-2">
@@ -315,7 +318,7 @@ const StudentListPage = () => {
                                             <div className="grid grid-cols-2 gap-2 text-xs">
                                                 <div className="text-center">
                                                     <div className="text-gray-600 mb-1">45' HK1</div>
-                                                    <ScoreEditCell 
+                                                    <ScoreEditCell
                                                         studentId={student.id}
                                                         field="study45Hk1"
                                                         value={student.study45Hk1}
@@ -324,7 +327,7 @@ const StudentListPage = () => {
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-gray-600 mb-1">Thi HK1</div>
-                                                    <ScoreEditCell 
+                                                    <ScoreEditCell
                                                         studentId={student.id}
                                                         field="examHk1"
                                                         value={student.examHk1}
@@ -333,7 +336,7 @@ const StudentListPage = () => {
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-gray-600 mb-1">45' HK2</div>
-                                                    <ScoreEditCell 
+                                                    <ScoreEditCell
                                                         studentId={student.id}
                                                         field="study45Hk2"
                                                         value={student.study45Hk2}
@@ -342,7 +345,7 @@ const StudentListPage = () => {
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-gray-600 mb-1">Thi HK2</div>
-                                                    <ScoreEditCell 
+                                                    <ScoreEditCell
                                                         studentId={student.id}
                                                         field="examHk2"
                                                         value={student.examHk2}
@@ -350,7 +353,7 @@ const StudentListPage = () => {
                                                     />
                                                 </div>
                                             </div>
-                                            
+
                                             {/* Study average (calculated) */}
                                             <div className="text-center pt-2 border-t border-blue-200">
                                                 <div className="text-xs text-blue-600 font-medium">TB Giáo lý</div>
@@ -360,7 +363,7 @@ const StudentListPage = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    
+
                                     <td className="px-3 py-4 text-center">
                                         <div className="space-y-2">
                                             <div className="text-xs text-gray-600">
@@ -371,13 +374,13 @@ const StudentListPage = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    
+
                                     <td className="px-3 py-4 text-center">
                                         <div className="text-lg font-bold text-purple-700">
                                             {parseFloat(student.finalAverage || 0).toFixed(1)}
                                         </div>
                                     </td>
-                                    
+
                                     <td className="px-4 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             {isEditingThisStudent ? (

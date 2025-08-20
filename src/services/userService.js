@@ -7,53 +7,8 @@ export const userService = {
         } catch (error) {
             console.warn('🔄 UserService using fallback data:', error.message);
             return {
-                users: [
-                    {
-                        id: 1,
-                        username: 'admin',
-                        fullName: 'Quản trị viên',
-                        saintName: 'Maria',
-                        role: 'ban_dieu_hanh',
-                        phoneNumber: '0901234567',
-                        isActive: true,
-                        department: null,
-                        classTeachers: []
-                    },
-                    {
-                        id: 2,
-                        username: 'pdt_chien',
-                        fullName: 'Phạm Văn B',
-                        saintName: 'Joseph',
-                        role: 'phan_doan_truong',
-                        phoneNumber: '0907654321',
-                        isActive: true,
-                        department: { id: 1, displayName: 'Chiên' },
-                        classTeachers: []
-                    },
-                    {
-                        id: 3,
-                        username: 'glv_chien_1',
-                        fullName: 'Nguyễn Thị C',
-                        saintName: 'Anna',
-                        role: 'giao_ly_vien',
-                        phoneNumber: '0903456789',
-                        isActive: true,
-                        department: null,
-                        classTeachers: [{ class: { name: 'Chiên 1', department: { displayName: 'Chiên' } } }]
-                    },
-                    {
-                        id: 4,
-                        username: 'glv_au_1',
-                        fullName: 'Trần Văn D',
-                        saintName: 'Peter',
-                        role: 'giao_ly_vien',
-                        phoneNumber: '0904567890',
-                        isActive: false,
-                        department: null,
-                        classTeachers: [{ class: { name: 'Ấu 1', department: { displayName: 'Ấu' } } }]
-                    }
-                ],
-                pagination: { total: 4, page: 1, pages: 1, limit: 20 }
+                users: [],
+                pagination: { total: 0, page: 1, pages: 1, limit: 20 }
             };
         }
     },
@@ -63,32 +18,7 @@ export const userService = {
             return await api.get(`/users/${id}`);
         } catch (error) {
             console.warn('🔄 getUserById using fallback data:', error.message);
-            const mockUsers = {
-                1: {
-                    id: 1,
-                    username: 'admin',
-                    fullName: 'Quản trị viên',
-                    saintName: 'Maria',
-                    role: 'ban_dieu_hanh',
-                    phoneNumber: '0901234567',
-                    address: '123 Đường ABC, TP.HCM',
-                    isActive: true,
-                    department: null,
-                    classTeachers: []
-                },
-                2: {
-                    id: 2,
-                    username: 'pdt_chien',
-                    fullName: 'Phạm Văn B',
-                    saintName: 'Joseph',
-                    role: 'phan_doan_truong',
-                    phoneNumber: '0907654321',
-                    address: '456 Đường XYZ, TP.HCM',
-                    isActive: true,
-                    department: { id: 1, displayName: 'Chiên' },
-                    classTeachers: []
-                }
-            };
+            const mockUsers = {};
             return mockUsers[id] || mockUsers[1];
         }
     },
@@ -148,29 +78,7 @@ export const userService = {
             return await api.get('/teachers', params); // FIX: Đổi thành '/teachers'
         } catch (error) {
             console.warn('🔄 getTeachers using fallback data:', error.message);
-            return [
-                {
-                    id: 3,
-                    fullName: 'Nguyễn Thị C',
-                    saintName: 'Anna',
-                    phoneNumber: '0903456789',
-                    classTeachers: [{ class: { id: 1, name: 'Chiên 1' } }]
-                },
-                {
-                    id: 4,
-                    fullName: 'Trần Văn D',
-                    saintName: 'Peter',
-                    phoneNumber: '0904567890',
-                    classTeachers: []
-                },
-                {
-                    id: 5,
-                    fullName: 'Lê Thị E',
-                    saintName: 'Teresa',
-                    phoneNumber: '0905678901',
-                    classTeachers: [{ class: { id: 2, name: 'Ấu 1' } }]
-                }
-            ];
+            return [];
         }
     },
 

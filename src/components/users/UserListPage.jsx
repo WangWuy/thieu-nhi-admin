@@ -12,6 +12,8 @@ import {
     Upload
 } from 'lucide-react';
 import { userService } from '../../services/userService';
+import { classService } from '../../services/classService';
+import { departmentService } from '../../services/departmentService';
 import { USER_ROLES } from '../../utils/constants';
 import { getRoleName } from '../../utils/helpers';
 import UserModal from './UserModal';
@@ -24,18 +26,55 @@ const UserListPage = () => {
     const [filters, setFilters] = useState({
         search: '',
         roleFilter: '',
+        departmentFilter: '',
+        classFilter: '',
         page: 1,
         limit: 20
     });
+    const [searchInput, setSearchInput] = useState('');
     const [pagination, setPagination] = useState({});
     const [selectedUser, setSelectedUser] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
 
+    // New states for departments and classes
+    const [departments, setDepartments] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [filteredClasses, setFilteredClasses] = useState([]);
+
     useEffect(() => {
         fetchUsers();
     }, [filters]);
+
+    useEffect(() => {
+        setSearchInput(filters.search);
+    }, [filters.search]);
+
+    useEffect(() => {
+        fetchDepartments();
+        fetchClasses();
+    }, []);
+
+    // Filter classes when department filter changes
+    useEffect(() => {
+        if (filters.departmentFilter) {
+            const filtered = classes.filter(cls => 
+                cls.departmentId === parseInt(filters.departmentFilter)
+            );
+            setFilteredClasses(filtered);
+            
+            // Reset class filter if current selection doesn't belong to selected department
+            if (filters.classFilter) {
+                const isValidClass = filtered.some(cls => cls.id === parseInt(filters.classFilter));
+                if (!isValidClass) {
+                    setFilters(prev => ({ ...prev, classFilter: '', page: 1 }));
+                }
+            }
+        } else {
+            setFilteredClasses(classes);
+        }
+    }, [filters.departmentFilter, classes]);
 
     const fetchUsers = async () => {
         try {
@@ -50,18 +89,64 @@ const UserListPage = () => {
         }
     };
 
-    const handleSearch = (e) => {
+    const fetchDepartments = async () => {
+        try {
+            const data = await departmentService.getDepartments();
+            setDepartments(data);
+        } catch (err) {
+            console.error('Failed to fetch departments:', err);
+        }
+    };
+
+    const fetchClasses = async () => {
+        try {
+            const data = await classService.getClasses();
+            setClasses(data);
+        } catch (err) {
+            console.error('Failed to fetch classes:', err);
+        }
+    };
+
+    const handleSearchInputChange = (e) => {
+        setSearchInput(e.target.value);
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
         setFilters(prev => ({
             ...prev,
-            search: e.target.value,
+            search: searchInput.trim(),
             page: 1
         }));
+    };
+
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearchSubmit(e);
+        }
     };
 
     const handleRoleFilter = (e) => {
         setFilters(prev => ({
             ...prev,
             roleFilter: e.target.value,
+            page: 1
+        }));
+    };
+
+    const handleDepartmentFilter = (e) => {
+        setFilters(prev => ({
+            ...prev,
+            departmentFilter: e.target.value,
+            classFilter: '', // Reset class filter when department changes
+            page: 1
+        }));
+    };
+
+    const handleClassFilter = (e) => {
+        setFilters(prev => ({
+            ...prev,
+            classFilter: e.target.value,
             page: 1
         }));
     };
@@ -91,7 +176,7 @@ const UserListPage = () => {
 
         try {
             await userService.deactivateUser(userId);
-            fetchUsers(); // Refresh list
+            fetchUsers();
             alert('Khóa tài khoản thành công!');
         } catch (err) {
             alert('Lỗi: ' + err.message);
@@ -112,8 +197,51 @@ const UserListPage = () => {
     };
 
     const handleImportSuccess = () => {
-        fetchUsers(); // Refresh user list after successful import
+        fetchUsers();
         setShowImportModal(false);
+    };
+
+    // Helper function to format class/department info
+    const formatClassDepartmentInfo = (user) => {
+        // Nếu user có department (PDT, BDH)
+        // if (user.department) {
+        //     return (
+        //         <div>
+        //             <div className="font-semibold">{user.department.displayName}</div>
+        //         </div>
+        //     );
+        // }
+        
+        // Nếu user có classTeachers (GLV)
+        if (user.classTeachers?.length > 0) {
+            // Group classes by department
+            const classByDept = {};
+            user.classTeachers.forEach(ct => {
+                const deptName = ct.class.department?.displayName || 'Chưa có ngành';
+                if (!classByDept[deptName]) {
+                    classByDept[deptName] = [];
+                }
+                classByDept[deptName].push(ct.class.name);
+            });
+
+            return (
+                <div>
+                    {Object.entries(classByDept).map(([deptName, classes], index) => (
+                        <div key={index} className={index > 0 ? 'mt-2' : ''}>
+                            <div className="font-semibold">{deptName}</div>
+                            <div className="text-sm text-gray-600">{classes.join(', ')}</div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        
+        // Nếu không có gì
+        return (
+            <div>
+                <div className="text-gray-500 text-sm">Chưa có lớp</div>
+            </div>
+        );
     };
 
     if (loading) {
@@ -133,46 +261,106 @@ const UserListPage = () => {
         <div className="space-y-6">
             {/* Filters */}
             <div className="bg-gradient-to-r from-red-50 to-amber-50 p-4 rounded-lg shadow-sm border border-red-100">
-                <div className="flex flex-col md:flex-row gap-4 justify-between">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo tên, username..."
-                                value={filters.search}
-                                onChange={handleSearch}
-                                className="w-full pl-10 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                            />
+                <div className="flex flex-col gap-4">
+                    {/* Search row */}
+                    <div className="flex flex-col md:flex-row gap-4 justify-between">
+                        <div className="flex-1">
+                            <form onSubmit={handleSearchSubmit} className="relative">
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm theo tên, username..."
+                                    value={searchInput}
+                                    onChange={handleSearchInputChange}
+                                    onKeyPress={handleSearchKeyPress}
+                                    className="w-full pl-11 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 search-input"
+                                />
+                            </form>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowImportModal(true)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Import Excel
+                            </button>
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Thêm người dùng
+                            </button>
                         </div>
                     </div>
-                    <div className="w-full md:w-48">
-                        <select
-                            value={filters.roleFilter}
-                            onChange={handleRoleFilter}
-                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
-                            <option value="">Tất cả vai trò</option>
-                            <option value={USER_ROLES.BAN_DIEU_HANH}>Ban Điều Hành</option>
-                            <option value={USER_ROLES.PHAN_DOAN_TRUONG}>Phân Đoàn Trưởng</option>
-                            <option value={USER_ROLES.GIAO_LY_VIEN}>Giáo Lý Viên</option>
-                        </select>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setShowImportModal(true)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                        >
-                            <Upload className="w-4 h-4" />
-                            Import Excel
-                        </button>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Thêm người dùng
-                        </button>
+
+                    {/* Filter row */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <select
+                                value={filters.roleFilter}
+                                onChange={handleRoleFilter}
+                                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            >
+                                <option value="">Tất cả vai trò</option>
+                                <option value={USER_ROLES.BAN_DIEU_HANH}>Ban Điều Hành</option>
+                                <option value={USER_ROLES.PHAN_DOAN_TRUONG}>Phân Đoàn Trưởng</option>
+                                <option value={USER_ROLES.GIAO_LY_VIEN}>Giáo Lý Viên</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <select
+                                value={filters.departmentFilter}
+                                onChange={handleDepartmentFilter}
+                                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            >
+                                <option value="">Tất cả ngành</option>
+                                {departments.map(dept => (
+                                    <option key={dept.id} value={dept.id}>
+                                        {dept.displayName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <select
+                                value={filters.classFilter}
+                                onChange={handleClassFilter}
+                                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                disabled={!filters.departmentFilter}
+                            >
+                                <option value="">
+                                    {filters.departmentFilter ? 'Tất cả lớp' : 'Chọn ngành trước'}
+                                </option>
+                                {filteredClasses.map(cls => (
+                                    <option key={cls.id} value={cls.id}>
+                                        {cls.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <button
+                                onClick={() => {
+                                    setFilters({
+                                        search: '',
+                                        roleFilter: '',
+                                        departmentFilter: '',
+                                        classFilter: '',
+                                        page: 1,
+                                        limit: 20
+                                    });
+                                    setSearchInput('');
+                                }}
+                                className="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-red-200 rounded-lg transition-colors"
+                            >
+                                Xóa bộ lọc
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -236,11 +424,10 @@ const UserListPage = () => {
                                             {getRoleName(user.role)}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-700">
-                                        {user.department ? user.department.displayName :
-                                            user.classTeachers?.length > 0 ?
-                                                user.classTeachers.map(ct => ct.class.name).join(', ') :
-                                                '-'}
+                                    <td className="px-6 py-4 text-sm text-red-700">
+                                        <div className="max-w-xs">
+                                            {formatClassDepartmentInfo(user)}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-700">
                                         {user.phoneNumber || '-'}
