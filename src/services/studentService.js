@@ -28,8 +28,9 @@ export const studentService = {
         return apiService.get(`/classes/${classId}/students`, params);
     },
 
+    // ✅ FIXED: Dùng apiService thay vì api
     async restoreStudent(studentId) {
-        return api.put(`/students/${studentId}/restore`);
+        return apiService.put(`/students/${studentId}/restore`);
     },
 
     // NEW: Score management operations
