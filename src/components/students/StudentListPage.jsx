@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search, ArrowLeft, RotateCcw } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import StudentForm from './StudentForm';
@@ -15,6 +15,7 @@ const StudentListPage = () => {
     const [filters, setFilters] = useState({
         search: '',
         classFilter: searchParams.get('classId') || '',
+        isActiveFilter: '', // '' = all, 'true' = active, 'false' = inactive
         page: 1,
         limit: 20
     });
@@ -56,7 +57,17 @@ const StudentListPage = () => {
     const fetchStudents = async () => {
         try {
             setLoading(true);
-            const response = await studentService.getStudents(filters);
+            // Build query params
+            const queryParams = { ...filters };
+            
+            // Handle isActive filter
+            if (filters.isActiveFilter !== '') {
+                queryParams.isActive = filters.isActiveFilter;
+            }
+            // Remove empty isActiveFilter from query
+            delete queryParams.isActiveFilter;
+            
+            const response = await studentService.getStudents(queryParams);
             setStudents(response.students);
             setPagination(response.pagination);
         } catch (err) {
@@ -120,6 +131,16 @@ const StudentListPage = () => {
         if (!confirm('Bạn có chắc muốn xóa thiếu nhi này?')) return;
         try {
             await studentService.deleteStudent(studentId);
+            fetchStudents();
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    };
+
+    const handleRestoreStudent = async (studentId) => {
+        if (!confirm('Bạn có chắc muốn khôi phục thiếu nhi này?')) return;
+        try {
+            await studentService.restoreStudent(studentId);
             fetchStudents();
         } catch (err) {
             alert('Lỗi: ' + err.message);
@@ -266,6 +287,15 @@ const StudentListPage = () => {
                             <option key={cls.id} value={cls.id}>{cls.name}</option>
                         ))}
                     </select>
+                    <select
+                        value={filters.isActiveFilter}
+                        onChange={(e) => setFilters(prev => ({ ...prev, isActiveFilter: e.target.value, page: 1 }))}
+                        className="px-3 py-2 border rounded-lg"
+                    >
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="true">Đang học</option>
+                        <option value="false">Đã xóa</option>
+                    </select>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowImportModal(true)}
@@ -332,15 +362,16 @@ const StudentListPage = () => {
                             const isSaving = savingScores[student.id];
 
                             return (
-                                <tr key={student.id} className={`hover:bg-gray-50 ${isEditingThisStudent ? 'bg-blue-50' : ''}`}>
+                                <tr key={student.id} className={`hover:bg-gray-50 ${isEditingThisStudent ? 'bg-blue-50' : ''} ${!student.isActive ? 'bg-red-50 opacity-75' : ''}`}>
                                     <td className="px-4 py-4">
                                         <div className="flex items-center">
-                                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!student.isActive ? 'bg-gray-400' : 'bg-blue-600'}`}>
                                                 <GraduationCap className="w-4 h-4 text-white" />
                                             </div>
                                             <div className="ml-3">
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className={`text-sm font-medium ${!student.isActive ? 'text-gray-500' : 'text-gray-900'}`}>
                                                     {student.saintName && `${student.saintName} `}{student.fullName}
+                                                    {!student.isActive && <span className="ml-2 text-xs text-red-600 font-semibold">(Đã xóa)</span>}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
                                                     {student.studentCode}
@@ -468,6 +499,7 @@ const StudentListPage = () => {
                                                         onClick={() => startEditingScores(student.id, student)}
                                                         className="text-blue-600 hover:text-blue-800"
                                                         title="Sửa điểm"
+                                                        disabled={!student.isActive}
                                                     >
                                                         <Award className="w-4 h-4" />
                                                     </button>
@@ -478,16 +510,27 @@ const StudentListPage = () => {
                                                         }}
                                                         className="text-blue-600 hover:text-blue-800"
                                                         title="Sửa thông tin"
+                                                        disabled={!student.isActive}
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDeleteStudent(student.id)}
-                                                        className="text-red-600 hover:text-red-800"
-                                                        title="Xóa"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    {student.isActive ? (
+                                                        <button
+                                                            onClick={() => handleDeleteStudent(student.id)}
+                                                            className="text-red-600 hover:text-red-800"
+                                                            title="Xóa"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleRestoreStudent(student.id)}
+                                                            className="text-green-600 hover:text-green-800"
+                                                            title="Khôi phục"
+                                                        >
+                                                            <RotateCcw className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </>
                                             )}
                                         </div>

@@ -28,6 +28,10 @@ export const studentService = {
         return apiService.get(`/classes/${classId}/students`, params);
     },
 
+    async restoreStudent(studentId) {
+        return api.put(`/students/${studentId}/restore`);
+    },
+
     // NEW: Score management operations
     async getStudentScoreDetails(id) {
         return apiService.get(`/students/${id}/score-details`);
