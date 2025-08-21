@@ -203,15 +203,6 @@ const UserListPage = () => {
 
     // Helper function to format class/department info
     const formatClassDepartmentInfo = (user) => {
-        // Nếu user có department (PDT, BDH)
-        // if (user.department) {
-        //     return (
-        //         <div>
-        //             <div className="font-semibold">{user.department.displayName}</div>
-        //         </div>
-        //     );
-        // }
-        
         // Nếu user có classTeachers (GLV)
         if (user.classTeachers?.length > 0) {
             // Group classes by department

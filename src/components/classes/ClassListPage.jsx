@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Plus,
     Edit,
@@ -8,13 +9,15 @@ import {
     GraduationCap,
     BookOpen,
     Search,
-    Filter
+    Filter,
+    Eye
 } from 'lucide-react';
 import { classService } from '../../services/classService';
 import { departmentService } from '../../services/departmentService.js';
 import ClassModal from './ClassModal.jsx';
 
 const ClassListPage = () => {
+    const navigate = useNavigate();
     const [classes, setClasses] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -259,13 +262,13 @@ const ClassListPage = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <a
-                                                            href={`/students?classId=${classItem.id}`}
+                                                        <button
+                                                            onClick={() => navigate(`/students?classId=${classItem.id}`)}
                                                             className="text-green-600 hover:text-green-800"
                                                             title="Xem thiếu nhi"
                                                         >
-                                                            <Users className="w-4 h-4" />
-                                                        </a>
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
                                                         <button
                                                             onClick={() => handleEditClass(classItem)}
                                                             className="text-blue-600 hover:text-blue-800"

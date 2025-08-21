@@ -268,47 +268,47 @@ button:hover,
   transform: translateY(-2px);
 }
 
-/* Input styles - UPDATED for better readability */
+/* Input styles - FIXED for better readability */
 input, textarea, select {
   border-radius: 10px;
   border: 1px solid var(--logo-red-100);
   padding: 0.75rem 1rem;
   font-family: inherit;
   background: rgba(255, 255, 255, 0.98);
-  color: var(--logo-red-800);
-  font-weight: 500; /* Tăng độ đậm cho text */
+  color: #1f2937 !important; /* gray-800 - đậm hơn nhiều cho text */
+  font-weight: 600 !important; /* Tăng độ đậm cho text trong input */
   transition: all 0.2s ease-in-out;
 }
 
-/* Placeholder styles - Tăng độ đậm */
+/* IMPROVED Placeholder styles - Đậm và rõ ràng hơn */
 input::placeholder, 
 textarea::placeholder, 
 select::placeholder {
-  color: #6b7280; /* gray-500 - đậm hơn gray-400 */
-  font-weight: 500; /* Tăng độ đậm cho placeholder */
-  opacity: 1; /* Đảm bảo opacity đầy đủ */
+  color: #374151 !important; /* gray-700 - đậm hơn nhiều */
+  font-weight: 600 !important; /* Tăng độ đậm cho placeholder */
+  opacity: 1 !important; /* Đảm bảo opacity đầy đủ */
 }
 
 /* Firefox specific placeholder */
 input::-moz-placeholder, 
 textarea::-moz-placeholder {
-  color: #6b7280;
-  font-weight: 500;
-  opacity: 1;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
 }
 
 /* WebKit specific placeholder */
 input::-webkit-input-placeholder, 
 textarea::-webkit-input-placeholder {
-  color: #6b7280;
-  font-weight: 500;
+  color: #374151 !important;
+  font-weight: 600 !important;
 }
 
 /* MS Edge specific placeholder */
 input::-ms-input-placeholder, 
 textarea::-ms-input-placeholder {
-  color: #6b7280;
-  font-weight: 500;
+  color: #374151 !important;
+  font-weight: 600 !important;
 }
 
 input:focus, textarea:focus, select:focus {
@@ -316,29 +316,32 @@ input:focus, textarea:focus, select:focus {
   border-color: var(--logo-red-500);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
   background: white;
-  font-weight: 600; /* Tăng độ đậm khi focus */
+  color: #111827 !important; /* gray-900 - đậm nhất khi focus */
+  font-weight: 700 !important; /* Tăng độ đậm khi focus */
 }
 
 /* Search input với icon specific styling */
 .search-input {
-  padding-left: 2.75rem !important; /* pl-11 equivalent */
-  font-weight: 500 !important; /* Tăng độ đậm */
+  padding-left: 2.75rem !important;
+  color: #1f2937 !important; /* gray-800 */
+  font-weight: 600 !important;
 }
 
 .search-input::placeholder {
-  color: #6b7280 !important; /* gray-500 - đậm hơn */
-  font-weight: 500 !important; /* Tăng độ đậm cho placeholder */
+  color: #374151 !important; /* gray-700 - đậm hơn */
+  font-weight: 600 !important; /* Tăng độ đậm cho placeholder */
   font-style: italic;
 }
 
 .search-input:focus {
   padding-left: 2.75rem !important;
-  font-weight: 600 !important; /* Tăng độ đậm khi focus */
+  color: #111827 !important; /* gray-900 khi focus */
+  font-weight: 700 !important;
 }
 
 .search-input:focus::placeholder {
-  color: #9ca3af; /* Nhạt hơn khi focus để text nổi bật */
-  font-weight: 400;
+  color: #6b7280 !important; /* Nhạt hơn khi focus để text nổi bật */
+  font-weight: 500 !important;
 }
 
 /* Icon positioning cho search inputs */
@@ -407,6 +410,25 @@ button:disabled,
   button:hover {
     background: linear-gradient(135deg, var(--logo-red-600), var(--logo-red-700)) !important;
   }
+  
+  /* Light mode placeholder - đậm hơn */
+  input::placeholder, 
+  textarea::placeholder, 
+  select::placeholder {
+    color: #374151 !important; /* gray-700 */
+    font-weight: 600 !important;
+  }
+  
+  /* Light mode input text */
+  input, textarea, select {
+    color: #1f2937 !important; /* gray-800 */
+    font-weight: 600 !important;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    color: #111827 !important; /* gray-900 khi focus */
+    font-weight: 700 !important;
+  }
 }
 
 /* Dark mode support with logo colors */
@@ -436,22 +458,31 @@ button:disabled,
   input, textarea, select {
     background: rgba(127, 29, 29, 0.5);
     border-color: var(--logo-red-500);
-    color: #fecaca;
-    font-weight: 500;
+    color: #f3f4f6 !important; /* gray-100 - sáng cho dark mode */
+    font-weight: 600 !important;
   }
   
+  /* Dark mode placeholder - sáng hơn để thấy rõ trên nền tối */
   input::placeholder, 
   textarea::placeholder, 
   select::placeholder {
-    color: #9ca3af;
-    font-weight: 500;
+    color: #d1d5db !important; /* gray-300 - sáng hơn cho dark mode */
+    font-weight: 600 !important;
   }
   
   input:focus, textarea:focus, select:focus {
     border-color: var(--logo-red-400);
     background: rgba(127, 29, 29, 0.7);
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-    font-weight: 600;
+    color: #ffffff !important; /* white khi focus trong dark mode */
+    font-weight: 700 !important;
+  }
+  
+  /* Dark mode focus placeholder */
+  input:focus::placeholder, 
+  textarea:focus::placeholder {
+    color: #9ca3af !important; /* Nhạt hơn khi focus */
+    font-weight: 500 !important;
   }
 }
 

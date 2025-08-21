@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Award, Calculator } from 'lucide-react';
 
-const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) => {
+const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], defaultClassId }) => {
     const [formData, setFormData] = useState({
         studentCode: '',
         saintName: '',
@@ -32,7 +32,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
                 parentPhone1: student.parentPhone1 || '',
                 parentPhone2: student.parentPhone2 || '',
                 address: student.address || '',
-                classId: student.classId || '',
+                classId: student.classId || defaultClassId || '',
                 // Score fields
                 study45Hk1: student.study45Hk1 || 0,
                 examHk1: student.examHk1 || 0,
@@ -40,6 +40,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
                 examHk2: student.examHk2 || 0
             });
         } else {
+            // Reset form với defaultClassId khi tạo mới
             setFormData({
                 studentCode: '',
                 saintName: '',
@@ -49,7 +50,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
                 parentPhone1: '',
                 parentPhone2: '',
                 address: '',
-                classId: '',
+                classId: defaultClassId || '',
                 // Score fields
                 study45Hk1: 0,
                 examHk1: 0,
@@ -58,7 +59,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [] }) 
             });
         }
         setErrors({});
-    }, [student, isOpen]);
+    }, [student, isOpen, defaultClassId]);
 
     // Calculate study average preview
     const calculateStudyAverage = () => {

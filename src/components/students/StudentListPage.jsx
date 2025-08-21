@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search, ArrowLeft } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import StudentForm from './StudentForm';
 import ExcelImportModal from '../import/ExcelImportModal';
 
 const StudentListPage = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [students, setStudents] = useState([]);
     const [classes, setClasses] = useState([]);
+    const [selectedClass, setSelectedClass] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         search: '',
-        classFilter: '',
+        classFilter: searchParams.get('classId') || '',
         page: 1,
         limit: 20
     });
@@ -22,16 +25,33 @@ const StudentListPage = () => {
     const [showImportModal, setShowImportModal] = useState(false);
 
     // Score editing states
-    const [editingScores, setEditingScores] = useState({}); // { studentId: { study45Hk1: value, ... } }
-    const [savingScores, setSavingScores] = useState({}); // { studentId: true/false }
+    const [editingScores, setEditingScores] = useState({});
+    const [savingScores, setSavingScores] = useState({});
 
     useEffect(() => {
         fetchClasses();
     }, []);
 
     useEffect(() => {
+        const classIdFromUrl = searchParams.get('classId');
+        if (classIdFromUrl && classIdFromUrl !== filters.classFilter) {
+            setFilters(prev => ({ ...prev, classFilter: classIdFromUrl }));
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
         fetchStudents();
     }, [filters]);
+
+    useEffect(() => {
+        // Find selected class info when classFilter changes
+        if (filters.classFilter && classes.length > 0) {
+            const foundClass = classes.find(cls => cls.id === parseInt(filters.classFilter));
+            setSelectedClass(foundClass);
+        } else {
+            setSelectedClass(null);
+        }
+    }, [filters.classFilter, classes]);
 
     const fetchStudents = async () => {
         try {
@@ -69,6 +89,21 @@ const StudentListPage = () => {
 
     const handlePageChange = (newPage) => {
         setFilters(prev => ({ ...prev, page: newPage }));
+    };
+
+    const handleClassFilterChange = (classId) => {
+        setFilters(prev => ({ ...prev, classFilter: classId, page: 1 }));
+        
+        // Update URL params
+        if (classId) {
+            setSearchParams({ classId });
+        } else {
+            setSearchParams({});
+        }
+    };
+
+    const clearClassFilter = () => {
+        handleClassFilterChange('');
     };
 
     const handleCreateStudent = async (studentData) => {
@@ -129,22 +164,17 @@ const StudentListPage = () => {
             const scoreData = editingScores[studentId];
             await studentService.updateStudentScores(studentId, scoreData);
 
-            // Update local state
             setStudents(prev => prev.map(student => {
                 if (student.id === studentId) {
                     return {
                         ...student,
                         ...scoreData,
-                        // Điểm sẽ được tính lại ở backend
                     };
                 }
                 return student;
             }));
 
-            // Cancel editing mode
             cancelEditingScores(studentId);
-
-            // Refresh to get updated calculated scores
             fetchStudents();
         } catch (err) {
             alert('Lỗi khi lưu điểm: ' + err.message);
@@ -184,6 +214,33 @@ const StudentListPage = () => {
 
     return (
         <div className="space-y-6">
+            {/* Class Filter Banner */}
+            {selectedClass && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <GraduationCap className="w-5 h-5 text-blue-600" />
+                            <div>
+                                <span className="text-sm text-blue-600">Đang xem lớp:</span>
+                                <span className="ml-2 text-lg font-semibold text-blue-800">
+                                    {selectedClass.name}
+                                </span>
+                                <span className="ml-2 text-sm text-blue-600">
+                                    ({selectedClass.department?.displayName})
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={clearClassFilter}
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Xem tất cả lớp
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Filters & Actions */}
             <div className="bg-white p-4 rounded-lg shadow-sm border">
                 <div className="flex flex-col md:flex-row gap-4">
@@ -201,7 +258,7 @@ const StudentListPage = () => {
                     </div>
                     <select
                         value={filters.classFilter}
-                        onChange={(e) => setFilters(prev => ({ ...prev, classFilter: e.target.value, page: 1 }))}
+                        onChange={(e) => handleClassFilterChange(e.target.value)}
                         className="px-3 py-2 border rounded-lg"
                     >
                         <option value="">Tất cả lớp</option>
@@ -478,7 +535,9 @@ const StudentListPage = () => {
             {students.length === 0 && !loading && (
                 <div className="text-center py-12">
                     <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <div className="text-gray-500 mb-4">Không tìm thấy thiếu nhi nào</div>
+                    <div className="text-gray-500 mb-4">
+                        {selectedClass ? `Không có thiếu nhi nào trong lớp ${selectedClass.name}` : 'Không tìm thấy thiếu nhi nào'}
+                    </div>
                     <div className="flex justify-center gap-3">
                         <button
                             onClick={() => setShowCreateModal(true)}
@@ -486,12 +545,6 @@ const StudentListPage = () => {
                         >
                             Thêm thiếu nhi mới
                         </button>
-                        {/* <button
-                            onClick={() => setShowImportModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                        >
-                            Import từ Excel
-                        </button> */}
                     </div>
                 </div>
             )}
@@ -502,6 +555,7 @@ const StudentListPage = () => {
                 onClose={() => setShowCreateModal(false)}
                 onSave={handleCreateStudent}
                 classes={classes}
+                defaultClassId={filters.classFilter}
             />
 
             <StudentForm
