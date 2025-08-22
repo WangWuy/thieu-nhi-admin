@@ -31,6 +31,8 @@ const StudentListPage = () => {
     const [editingScores, setEditingScores] = useState({});
     const [savingScores, setSavingScores] = useState({});
 
+    const [searchInput, setSearchInput] = useState('');
+
     // ✅ Track loading states to prevent duplicate calls
     const [userLoaded, setUserLoaded] = useState(false);
     const [classesLoaded, setClassesLoaded] = useState(false);
@@ -97,6 +99,11 @@ const StudentListPage = () => {
 
     // Remove the old handleUserLoaded function and fetchClasses function
 
+    // ✅ Sync searchInput with filters.search
+    useEffect(() => {
+        setSearchInput(filters.search);
+    }, [filters.search]);
+
     // ✅ Update URL params when classFilter changes
     useEffect(() => {
         const classIdFromUrl = searchParams.get('classId');
@@ -152,6 +159,25 @@ const StudentListPage = () => {
             alert('Lỗi: ' + err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearchInputChange = (e) => {
+        setSearchInput(e.target.value);
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setFilters(prev => ({
+            ...prev,
+            search: searchInput.trim(),
+            page: 1
+        }));
+    };
+
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearchSubmit(e);
         }
     };
 
@@ -364,16 +390,17 @@ const StudentListPage = () => {
             <div className="bg-white p-4 rounded-lg shadow-sm border">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
-                        <div className="relative">
+                        <form onSubmit={handleSearchSubmit} className="relative">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400" />
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm..."
-                                value={filters.search}
-                                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+                                placeholder="Tìm kiếm theo tên, mã thiếu nhi..."
+                                value={searchInput}
+                                onChange={handleSearchInputChange}
+                                onKeyPress={handleSearchKeyPress}
                                 className="w-full pl-11 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 search-input"
                             />
-                        </div>
+                        </form>
                     </div>
                     <select
                         value={filters.classFilter}
