@@ -21,7 +21,32 @@ export const authService = {
     },
 
     async getCurrentUser() {
-        return api.get('/auth/me');
+        try {
+            const response = await api.get('/auth/me');
+            
+            // ✅ Parse assigned class 
+            const user = {
+                ...response,
+                assignedClass: this.getAssignedClass(response.classTeachers)
+            };
+
+            // Update localStorage với user info mới
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            return user;
+        } catch (error) {
+            console.error('Get current user error:', error);
+            // Fallback to localStorage user if API fails
+            return this.getCurrentUserFromStorage();
+        }
+    },
+
+    // ✅ Helper method để parse class từ classTeachers
+    getAssignedClass(classTeachers) {
+        if (!classTeachers || !Array.isArray(classTeachers)) return null;
+        
+        // Lấy class đầu tiên
+        return classTeachers[0]?.class || null;
     },
 
     async changePassword(passwords) {
@@ -41,6 +66,18 @@ export const authService = {
     getCurrentUserFromStorage() {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
+    },
+
+    // ✅ Get user with assigned class info (sync method)
+    getCurrentUserSync() {
+        const user = this.getCurrentUserFromStorage();
+        if (user && user.classTeachers) {
+            return {
+                ...user,
+                assignedClass: this.getAssignedClass(user.classTeachers)
+            };
+        }
+        return user;
     },
 
     // Remember login functionality

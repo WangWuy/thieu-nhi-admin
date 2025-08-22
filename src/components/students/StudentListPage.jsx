@@ -3,11 +3,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, Save, X, Award, Search, ArrowLeft, RotateCcw } from 'lucide-react';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
+import { authService } from '../../services/authService';
 import StudentForm from './StudentForm';
 import ExcelImportModal from '../import/ExcelImportModal';
 
 const StudentListPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [currentUser, setCurrentUser] = useState(null);
     const [students, setStudents] = useState([]);
     const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
@@ -15,7 +17,7 @@ const StudentListPage = () => {
     const [filters, setFilters] = useState({
         search: '',
         classFilter: searchParams.get('classId') || '',
-        isActiveFilter: '', // '' = all, 'true' = active, 'false' = inactive
+        isActiveFilter: '',
         page: 1,
         limit: 20
     });
@@ -29,10 +31,73 @@ const StudentListPage = () => {
     const [editingScores, setEditingScores] = useState({});
     const [savingScores, setSavingScores] = useState({});
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
+    // ✅ Track loading states to prevent duplicate calls
+    const [userLoaded, setUserLoaded] = useState(false);
+    const [classesLoaded, setClassesLoaded] = useState(false);
 
+    // ✅ Load user ONCE on mount
+    useEffect(() => {
+        const loadUser = async () => {
+            try {
+                // Fast: get from localStorage first
+                let user = authService.getCurrentUserSync();
+                if (user) {
+                    setCurrentUser(user);
+                    setUserLoaded(true);
+                }
+                
+                // Then update from API if needed
+                if (!user) {
+                    user = await authService.getCurrentUser();
+                    if (user) {
+                        setCurrentUser(user);
+                    }
+                }
+                setUserLoaded(true);
+            } catch (error) {
+                console.error('Load user error:', error);
+                setUserLoaded(true);
+            }
+        };
+
+        loadUser();
+    }, []); // Only run once
+
+    // ✅ Load classes AFTER user is loaded
+    useEffect(() => {
+        if (!userLoaded || !currentUser || classesLoaded) return;
+
+        const loadClasses = async () => {
+            if (currentUser.role === 'giao_ly_vien') {
+                // GLV: chỉ show assigned class
+                if (currentUser.assignedClass) {
+                    setClasses([currentUser.assignedClass]);
+                    setFilters(prev => ({
+                        ...prev,
+                        classFilter: currentUser.assignedClass.id.toString()
+                    }));
+                } else {
+                    setClasses([]);
+                }
+            } else {
+                // Admin/PDT: fetch all classes
+                try {
+                    const data = await classService.getClasses();
+                    setClasses(data);
+                } catch (err) {
+                    console.error('Failed to fetch classes:', err);
+                    setClasses([]);
+                }
+            }
+            setClassesLoaded(true);
+        };
+
+        loadClasses();
+    }, [userLoaded, currentUser, classesLoaded]);
+
+    // Remove the old handleUserLoaded function and fetchClasses function
+
+    // ✅ Update URL params when classFilter changes
     useEffect(() => {
         const classIdFromUrl = searchParams.get('classId');
         if (classIdFromUrl && classIdFromUrl !== filters.classFilter) {
@@ -40,12 +105,15 @@ const StudentListPage = () => {
         }
     }, [searchParams]);
 
+    // ✅ Fetch students when filters change AND both user + classes are loaded
     useEffect(() => {
-        fetchStudents();
-    }, [filters]);
+        if (userLoaded && classesLoaded && currentUser) {
+            fetchStudents();
+        }
+    }, [filters, userLoaded, classesLoaded, currentUser]);
 
+    // ✅ Update selected class when classFilter changes
     useEffect(() => {
-        // Find selected class info when classFilter changes
         if (filters.classFilter && classes.length > 0) {
             const foundClass = classes.find(cls => cls.id === parseInt(filters.classFilter));
             setSelectedClass(foundClass);
@@ -55,6 +123,8 @@ const StudentListPage = () => {
     }, [filters.classFilter, classes]);
 
     const fetchStudents = async () => {
+        if (!userLoaded || !classesLoaded || !currentUser) return;
+
         try {
             setLoading(true);
             // Build query params
@@ -64,25 +134,24 @@ const StudentListPage = () => {
             if (filters.isActiveFilter !== '') {
                 queryParams.isActive = filters.isActiveFilter;
             }
-            // Remove empty isActiveFilter from query
             delete queryParams.isActiveFilter;
             
             const response = await studentService.getStudents(queryParams);
-            setStudents(response.students);
+            
+            // ✅ Client-side filter for GLV
+            let filteredStudents = response.students;
+            if (currentUser?.role === 'giao_ly_vien' && currentUser.assignedClass) {
+                filteredStudents = response.students.filter(
+                    student => student.classId === currentUser.assignedClass.id
+                );
+            }
+            
+            setStudents(filteredStudents);
             setPagination(response.pagination);
         } catch (err) {
             alert('Lỗi: ' + err.message);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchClasses = async () => {
-        try {
-            const data = await classService.getClasses();
-            setClasses(data);
-        } catch (err) {
-            console.error('Failed to fetch classes:', err);
         }
     };
 
@@ -229,8 +298,15 @@ const StudentListPage = () => {
         );
     };
 
-    if (loading) {
-        return <div className="p-4">Đang tải...</div>;
+    if (loading && !currentUser) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-500">Đang tải...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -251,13 +327,35 @@ const StudentListPage = () => {
                                 </span>
                             </div>
                         </div>
-                        <button
-                            onClick={clearClassFilter}
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Xem tất cả lớp
-                        </button>
+                        {/* Chỉ admin/PDT mới có nút "Xem tất cả lớp" */}
+                        {currentUser?.role !== 'giao_ly_vien' && (
+                            <button
+                                onClick={clearClassFilter}
+                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Xem tất cả lớp
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* GLV chưa có lớp - Warning */}
+            {currentUser?.role === 'giao_ly_vien' && !currentUser.assignedClass && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-bold">!</span>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-yellow-800">
+                                Chưa được phân công lớp
+                            </h3>
+                            <p className="text-yellow-700 text-sm">
+                                Vui lòng liên hệ Ban Điều Hành để được phân công lớp học
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
@@ -281,8 +379,14 @@ const StudentListPage = () => {
                         value={filters.classFilter}
                         onChange={(e) => handleClassFilterChange(e.target.value)}
                         className="px-3 py-2 border rounded-lg"
+                        disabled={currentUser?.role === 'giao_ly_vien'}
                     >
-                        <option value="">Tất cả lớp</option>
+                        <option value="">
+                            {currentUser?.role === 'giao_ly_vien' && classes.length === 0 
+                                ? 'Chưa được phân công lớp' 
+                                : 'Tất cả lớp'
+                            }
+                        </option>
                         {classes.map(cls => (
                             <option key={cls.id} value={cls.id}>{cls.name}</option>
                         ))}
@@ -297,20 +401,24 @@ const StudentListPage = () => {
                         <option value="false">Đã xóa</option>
                     </select>
                     <div className="flex gap-2">
-                        <button
-                            onClick={() => setShowImportModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                        >
-                            <Upload className="w-4 h-4" />
-                            Import
-                        </button>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Thêm
-                        </button>
+                        {(currentUser?.role !== 'giao_ly_vien' || currentUser?.assignedClass) && (
+                            <>
+                                <button
+                                    onClick={() => setShowImportModal(true)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                >
+                                    <Upload className="w-4 h-4" />
+                                    Import
+                                </button>
+                                <button
+                                    onClick={() => setShowCreateModal(true)}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Thêm
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -579,21 +687,34 @@ const StudentListPage = () => {
                 <div className="text-center py-12">
                     <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <div className="text-gray-500 mb-4">
-                        {filters.isActiveFilter === 'false' ? (
+                        {/* GLV chưa được phân công lớp */}
+                        {currentUser?.role === 'giao_ly_vien' && !currentUser.assignedClass ? (
+                            'Bạn chưa được phân công lớp nào'
+                        ) : 
+                        /* Đang xem thiếu nhi đã nghỉ */
+                        filters.isActiveFilter === 'false' ? (
                             'Hiện tại không có thiếu nhi nào đã nghỉ'
-                        ) : selectedClass ? (
+                        ) : 
+                        /* Đang filter theo lớp cụ thể */
+                        selectedClass ? (
                             `Không có thiếu nhi nào trong lớp ${selectedClass.name}`
                         ) : (
                             'Không tìm thấy thiếu nhi nào'
                         )}
                     </div>
-                    {/* Chỉ hiện button thêm mới khi không phải đang xem thiếu nhi đã nghỉ */}
-                    {filters.isActiveFilter !== 'false' && (
+                    
+                    {/* Button thêm mới - chỉ hiện khi: */}
+                    {/* 1. Không phải đang xem thiếu nhi đã nghỉ */}
+                    {/* 2. GLV phải có lớp được assigned */}
+                    {/* 3. Hoặc không phải GLV */}
+                    {filters.isActiveFilter !== 'false' && 
+                     (currentUser?.role !== 'giao_ly_vien' || currentUser?.assignedClass) && (
                         <div className="flex justify-center gap-3">
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                             >
+                                <Plus className="w-4 h-4" />
                                 Thêm thiếu nhi mới
                             </button>
                         </div>
