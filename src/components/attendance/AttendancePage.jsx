@@ -85,19 +85,28 @@ const AttendancePage = () => {
         try {
             setSaving(true);
 
-            const attendanceRecords = students.map(student => ({
-                studentId: student.id,
-                isPresent: attendanceData[student.id]?.isPresent || false,
-                note: attendanceData[student.id]?.note || ''
-            }));
+            // Collect student codes from present students (use studentCode directly from data)
+            const presentStudentCodes = students
+                .filter(student => attendanceData[student.id]?.isPresent)
+                .map(student => student.studentCode);
 
-            await attendanceService.batchMarkAttendance(filters.classId, {
+            if (presentStudentCodes.length === 0) {
+                alert('Chưa có thiếu nhi nào được đánh dấu có mặt');
+                return;
+            }
+
+            await attendanceService.universalAttendance({
+                studentCodes: presentStudentCodes,
                 attendanceDate: filters.date,
                 attendanceType: filters.type,
-                attendanceRecords
+                note: 'Manual attendance marking'
             });
 
-            alert('Lưu điểm danh thành công!');
+            alert(`Lưu điểm danh thành công cho ${presentStudentCodes.length} thiếu nhi!`);
+
+            // Refresh data
+            await fetchAttendance();
+
         } catch (err) {
             alert('Lỗi: ' + err.message);
         } finally {

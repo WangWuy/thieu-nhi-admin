@@ -13,8 +13,8 @@ export const attendanceService = {
         return api.get('/attendance/stats', params);
     },
 
-    async batchMarkAttendance(classId, batchData) {
-        return api.post(`/classes/${classId}/attendance/batch`, batchData);
+    async universalAttendance(attendanceData) {
+        return api.post('/attendance/universal', attendanceData);
     },
 
     async getAttendanceTrend(params = {}) {

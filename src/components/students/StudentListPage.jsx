@@ -47,7 +47,7 @@ const StudentListPage = () => {
                     setCurrentUser(user);
                     setUserLoaded(true);
                 }
-                
+
                 // Then update from API if needed
                 if (!user) {
                     user = await authService.getCurrentUser();
@@ -136,15 +136,15 @@ const StudentListPage = () => {
             setLoading(true);
             // Build query params
             const queryParams = { ...filters };
-            
+
             // Handle isActive filter
             if (filters.isActiveFilter !== '') {
                 queryParams.isActive = filters.isActiveFilter;
             }
             delete queryParams.isActiveFilter;
-            
+
             const response = await studentService.getStudents(queryParams);
-            
+
             // ✅ Client-side filter for GLV
             let filteredStudents = response.students;
             if (currentUser?.role === 'giao_ly_vien' && currentUser.assignedClass) {
@@ -152,7 +152,7 @@ const StudentListPage = () => {
                     student => student.classId === currentUser.assignedClass.id
                 );
             }
-            
+
             setStudents(filteredStudents);
             setPagination(response.pagination);
         } catch (err) {
@@ -199,7 +199,7 @@ const StudentListPage = () => {
 
     const handleClassFilterChange = (classId) => {
         setFilters(prev => ({ ...prev, classFilter: classId, page: 1 }));
-        
+
         // Update URL params
         if (classId) {
             setSearchParams({ classId });
@@ -409,8 +409,8 @@ const StudentListPage = () => {
                         disabled={currentUser?.role === 'giao_ly_vien'}
                     >
                         <option value="">
-                            {currentUser?.role === 'giao_ly_vien' && classes.length === 0 
-                                ? 'Chưa được phân công lớp' 
+                            {currentUser?.role === 'giao_ly_vien' && classes.length === 0
+                                ? 'Chưa được phân công lớp'
                                 : 'Tất cả lớp'
                             }
                         </option>
@@ -466,19 +466,49 @@ const StudentListPage = () => {
                             </th>
 
                             {/* Score columns */}
-                            <th className="px-3 py-3 text-center text-xs font-medium text-blue-600 uppercase border-l border-blue-200">
+                            <th className="px-2 py-3 text-center text-xs font-medium text-blue-600 uppercase border-l border-blue-200">
                                 <div className="flex flex-col items-center">
-                                    <Award className="w-4 h-4 mb-1" />
-                                    <span>Điểm Giáo Lý</span>
+                                    <span>45' HK1</span>
                                 </div>
                             </th>
-                            <th className="px-3 py-3 text-center text-xs font-medium text-green-600 uppercase">
+                            <th className="px-2 py-3 text-center text-xs font-medium text-blue-600 uppercase">
                                 <div className="flex flex-col items-center">
-                                    <span>Điểm danh</span>
+                                    <span>Thi HK1</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-blue-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>45' HK2</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-blue-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>Thi HK2</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-blue-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>TB Giáo lý</span>
                                     <span className="text-[10px] font-normal">(Tự động)</span>
                                 </div>
                             </th>
-                            <th className="px-3 py-3 text-center text-xs font-medium text-purple-600 uppercase">
+                            <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>Điểm danh T5</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>Điểm danh CN</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
+                                <div className="flex flex-col items-center">
+                                    <span>TB Điểm danh</span>
+                                    <span className="text-[10px] font-normal">(Tự động)</span>
+                                </div>
+                            </th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-purple-600 uppercase">
                                 <div className="flex flex-col items-center">
                                     <span>Tổng TB</span>
                                     <span className="text-[10px] font-normal">(Tự động)</span>
@@ -535,70 +565,60 @@ const StudentListPage = () => {
                                     </td>
 
                                     {/* Score columns */}
-                                    <td className="px-3 py-4 border-l border-blue-100">
-                                        <div className="space-y-2">
-                                            {/* Editable scores */}
-                                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                                <div className="text-center">
-                                                    <div className="text-gray-600 mb-1">45' HK1</div>
-                                                    <ScoreEditCell
-                                                        studentId={student.id}
-                                                        field="study45Hk1"
-                                                        value={student.study45Hk1}
-                                                        label="45' HK1"
-                                                    />
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-gray-600 mb-1">Thi HK1</div>
-                                                    <ScoreEditCell
-                                                        studentId={student.id}
-                                                        field="examHk1"
-                                                        value={student.examHk1}
-                                                        label="Thi HK1"
-                                                    />
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-gray-600 mb-1">45' HK2</div>
-                                                    <ScoreEditCell
-                                                        studentId={student.id}
-                                                        field="study45Hk2"
-                                                        value={student.study45Hk2}
-                                                        label="45' HK2"
-                                                    />
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-gray-600 mb-1">Thi HK2</div>
-                                                    <ScoreEditCell
-                                                        studentId={student.id}
-                                                        field="examHk2"
-                                                        value={student.examHk2}
-                                                        label="Thi HK2"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Study average (calculated) */}
-                                            <div className="text-center pt-2 border-t border-blue-200">
-                                                <div className="text-xs text-blue-600 font-medium">TB Giáo lý</div>
-                                                <div className="text-sm font-bold text-blue-700">
-                                                    {parseFloat(student.studyAverage || 0).toFixed(1)}
-                                                </div>
-                                            </div>
+                                    {/* Score columns - Individual cells */}
+                                    <td className="px-2 py-4 text-center border-l border-blue-100">
+                                        <ScoreEditCell
+                                            studentId={student.id}
+                                            field="study45Hk1"
+                                            value={student.study45Hk1}
+                                            label="45' HK1"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
+                                        <ScoreEditCell
+                                            studentId={student.id}
+                                            field="examHk1"
+                                            value={student.examHk1}
+                                            label="Thi HK1"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
+                                        <ScoreEditCell
+                                            studentId={student.id}
+                                            field="study45Hk2"
+                                            value={student.study45Hk2}
+                                            label="45' HK2"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
+                                        <ScoreEditCell
+                                            studentId={student.id}
+                                            field="examHk2"
+                                            value={student.examHk2}
+                                            label="Thi HK2"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4 text-center bg-blue-50">
+                                        <div className="text-sm font-bold text-blue-700">
+                                            {parseFloat(student.studyAverage || 0).toFixed(1)}
                                         </div>
                                     </td>
-
-                                    <td className="px-3 py-4 text-center">
-                                        <div className="space-y-2">
-                                            <div className="text-xs text-gray-600">
-                                                T5: {student.thursdayAttendanceCount || 0} | CN: {student.sundayAttendanceCount || 0}
-                                            </div>
-                                            <div className="text-sm font-bold text-green-700">
-                                                {parseFloat(student.attendanceAverage || 0).toFixed(1)}
-                                            </div>
+                                    <td className="px-2 py-4 text-center bg-green-50">
+                                        <div className="text-sm font-medium text-green-700">
+                                            {student.thursdayAttendanceCount || 0}
                                         </div>
                                     </td>
-
-                                    <td className="px-3 py-4 text-center">
+                                    <td className="px-2 py-4 text-center bg-green-50">
+                                        <div className="text-sm font-medium text-green-700">
+                                            {student.sundayAttendanceCount || 0}
+                                        </div>
+                                    </td>
+                                    <td className="px-2 py-4 text-center bg-green-50">
+                                        <div className="text-sm font-bold text-green-700">
+                                            {parseFloat(student.attendanceAverage || 0).toFixed(1)}
+                                        </div>
+                                    </td>
+                                    <td className="px-2 py-4 text-center bg-purple-50">
                                         <div className="text-lg font-bold text-purple-700">
                                             {parseFloat(student.finalAverage || 0).toFixed(1)}
                                         </div>
@@ -717,35 +737,35 @@ const StudentListPage = () => {
                         {/* GLV chưa được phân công lớp */}
                         {currentUser?.role === 'giao_ly_vien' && !currentUser.assignedClass ? (
                             'Bạn chưa được phân công lớp nào'
-                        ) : 
-                        /* Đang xem thiếu nhi đã nghỉ */
-                        filters.isActiveFilter === 'false' ? (
-                            'Hiện tại không có thiếu nhi nào đã nghỉ'
-                        ) : 
-                        /* Đang filter theo lớp cụ thể */
-                        selectedClass ? (
-                            `Không có thiếu nhi nào trong lớp ${selectedClass.name}`
-                        ) : (
-                            'Không tìm thấy thiếu nhi nào'
-                        )}
+                        ) :
+                            /* Đang xem thiếu nhi đã nghỉ */
+                            filters.isActiveFilter === 'false' ? (
+                                'Hiện tại không có thiếu nhi nào đã nghỉ'
+                            ) :
+                                /* Đang filter theo lớp cụ thể */
+                                selectedClass ? (
+                                    `Không có thiếu nhi nào trong lớp ${selectedClass.name}`
+                                ) : (
+                                    'Không tìm thấy thiếu nhi nào'
+                                )}
                     </div>
-                    
+
                     {/* Button thêm mới - chỉ hiện khi: */}
                     {/* 1. Không phải đang xem thiếu nhi đã nghỉ */}
                     {/* 2. GLV phải có lớp được assigned */}
                     {/* 3. Hoặc không phải GLV */}
-                    {filters.isActiveFilter !== 'false' && 
-                     (currentUser?.role !== 'giao_ly_vien' || currentUser?.assignedClass) && (
-                        <div className="flex justify-center gap-3">
-                            <button
-                                onClick={() => setShowCreateModal(true)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Thêm thiếu nhi mới
-                            </button>
-                        </div>
-                    )}
+                    {filters.isActiveFilter !== 'false' &&
+                        (currentUser?.role !== 'giao_ly_vien' || currentUser?.assignedClass) && (
+                            <div className="flex justify-center gap-3">
+                                <button
+                                    onClick={() => setShowCreateModal(true)}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Thêm thiếu nhi mới
+                                </button>
+                            </div>
+                        )}
                 </div>
             )}
 
