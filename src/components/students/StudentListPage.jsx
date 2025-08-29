@@ -19,7 +19,7 @@ const StudentListPage = () => {
         classFilter: searchParams.get('classId') || '',
         isActiveFilter: '',
         page: 1,
-        limit: 20
+        limit: 45
     });
     const [pagination, setPagination] = useState({});
     const [selectedStudent, setSelectedStudent] = useState(null);
