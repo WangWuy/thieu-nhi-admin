@@ -28,7 +28,7 @@ const ReportsPage = () => {
         departments: [],
         academicYears: []
     });
-    
+
     const [filters, setFilters] = useState({
         startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0],
@@ -39,30 +39,30 @@ const ReportsPage = () => {
     });
 
     const reportTypes = [
-        { 
-            value: 'attendance', 
-            label: 'Báo cáo điểm danh', 
+        {
+            value: 'attendance',
+            label: 'Báo cáo điểm danh',
             icon: Users,
             description: 'Thống kê điểm danh theo thời gian và lớp học',
             color: 'blue'
         },
-        { 
-            value: 'grade-distribution', 
-            label: 'Phân bổ điểm số', 
+        {
+            value: 'grade-distribution',
+            label: 'Phân bổ điểm số',
             icon: BarChart3,
             description: 'Phân tích điểm số và thành tích học tập',
             color: 'green'
         },
-        { 
-            value: 'student-ranking', 
-            label: 'Xếp hạng thiếu nhi', 
+        {
+            value: 'student-ranking',
+            label: 'Xếp hạng thiếu nhi',
             icon: Award,
             description: 'Ranking thiếu nhi theo điểm tổng kết',
             color: 'yellow'
         },
-        { 
-            value: 'overview', 
-            label: 'Báo cáo tổng quan', 
+        {
+            value: 'overview',
+            label: 'Báo cáo tổng quan',
             icon: TrendingUp,
             description: 'Tổng quan hoạt động và thống kê chung',
             color: 'purple'
@@ -125,7 +125,7 @@ const ReportsPage = () => {
     const handleExportReport = async (format = 'csv') => {
         try {
             setExportLoading(format);
-            
+
             const exportFilters = {
                 startDate: filters.startDate,
                 endDate: filters.endDate,
@@ -134,7 +134,9 @@ const ReportsPage = () => {
                 ...(filters.academicYearId && { academicYearId: filters.academicYearId })
             };
 
+            // Gọi API export với type và format
             await reportsService.exportReport(filters.reportType, format, exportFilters);
+
         } catch (err) {
             setError(err.message || 'Không thể xuất báo cáo');
         } finally {
@@ -166,18 +168,18 @@ const ReportsPage = () => {
                     </h3>
                     <div className="flex gap-2">
                         <button
-                            onClick={() => handleExportReport('csv')}
-                            disabled={exportLoading === 'csv'}
+                            onClick={() => handleExportReport('xlsx')}
+                            disabled={exportLoading === 'xlsx'}
                             className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
                         >
-                            {exportLoading === 'csv' ? (
+                            {exportLoading === 'xlsx' ? (
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                             ) : (
                                 <FileSpreadsheet className="w-4 h-4" />
                             )}
                             Xuất Excel
                         </button>
-                        
+
                         <PDFExportButton
                             reportType={filters.reportType}
                             reportData={reportData}
@@ -191,6 +193,7 @@ const ReportsPage = () => {
 
                 {filters.reportType === 'attendance' && (
                     <div className="space-y-4">
+                        {/* Tóm tắt nhanh */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="bg-blue-50 p-4 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-600">
@@ -198,26 +201,26 @@ const ReportsPage = () => {
                                 </div>
                                 <div className="text-sm text-gray-600">Có mặt thứ 5</div>
                             </div>
-                            <div className="bg-red-50 p-4 rounded-lg">
-                                <div className="text-2xl font-bold text-red-600">
-                                    {reportData.summary?.thursday?.absent || 0}
-                                </div>
-                                <div className="text-sm text-gray-600">Vắng thứ 5</div>
-                            </div>
                             <div className="bg-green-50 p-4 rounded-lg">
                                 <div className="text-2xl font-bold text-green-600">
                                     {reportData.summary?.sunday?.present || 0}
                                 </div>
                                 <div className="text-sm text-gray-600">Có mặt CN</div>
                             </div>
+                            <div className="bg-purple-50 p-4 rounded-lg">
+                                <div className="text-2xl font-bold text-purple-600">
+                                    {Object.keys(reportData.attendanceByDate || {}).length}
+                                </div>
+                                <div className="text-sm text-gray-600">Số ngày có điểm danh</div>
+                            </div>
                             <div className="bg-yellow-50 p-4 rounded-lg">
                                 <div className="text-2xl font-bold text-yellow-600">
-                                    {reportData.summary?.sunday?.absent || 0}
+                                    {reportData.summary?.totalAttendances || 0}
                                 </div>
-                                <div className="text-sm text-gray-600">Vắng CN</div>
+                                <div className="text-sm text-gray-600">Tổng lượt điểm danh</div>
                             </div>
                         </div>
-                        
+                        {/* Hiển thị table điểm danh chi tiết */}
                         {reportData.attendanceData && reportData.attendanceData.length > 0 && (
                             <div className="max-h-96 overflow-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -225,19 +228,23 @@ const ReportsPage = () => {
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Loại</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã TN</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học sinh</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lớp</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {reportData.attendanceData.slice(0, 20).map((record, index) => (
+                                        {reportData.attendanceData.slice(0, 50).map((record, index) => (
                                             <tr key={index} className="hover:bg-gray-50">
                                                 <td className="px-4 py-3 text-sm text-gray-900">
                                                     {new Date(record.attendanceDate).toLocaleDateString('vi-VN')}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-900">
                                                     {record.attendanceType === 'thursday' ? 'Thứ 5' : 'Chủ nhật'}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm font-mono text-blue-600">
+                                                    {record.student.studentCode}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-900">
                                                     {record.student.fullName}
@@ -246,8 +253,8 @@ const ReportsPage = () => {
                                                     {record.student.class.name}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
-                                                    <span className={`px-2 py-1 rounded-full text-xs ${record.isPresent 
-                                                        ? 'bg-green-100 text-green-800' 
+                                                    <span className={`px-2 py-1 rounded-full text-xs ${record.isPresent
+                                                        ? 'bg-green-100 text-green-800'
                                                         : 'bg-red-100 text-red-800'}`}>
                                                         {record.isPresent ? 'Có mặt' : 'Vắng mặt'}
                                                     </span>
@@ -256,13 +263,53 @@ const ReportsPage = () => {
                                         ))}
                                     </tbody>
                                 </table>
-                                {reportData.attendanceData.length > 20 && (
+                                {reportData.attendanceData.length > 50 && (
                                     <div className="text-center py-4 text-gray-500 text-sm">
-                                        Và {reportData.attendanceData.length - 20} bản ghi khác...
+                                        Và {reportData.attendanceData.length - 50} bản ghi khác...
+                                        <br />
+                                        <span className="text-xs">Xuất Excel để xem đầy đủ</span>
                                     </div>
                                 )}
                             </div>
                         )}
+
+                        {/* Hiển thị mã thiếu nhi theo ngày - phần bổ sung */}
+                        {reportData.attendanceByDate && Object.keys(reportData.attendanceByDate).length > 0 && (
+                            <div className="mt-6">
+                                <div className="space-y-3">
+                                    <h4 className="font-medium text-gray-900">Tóm tắt mã thiếu nhi có mặt theo ngày (10 ngày gần nhất):</h4>
+                                    {Object.values(reportData.attendanceByDate)
+                                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                        .slice(0, 10)
+                                        .map((dayData, index) => (
+                                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="font-medium text-gray-900">
+                                                        {new Date(dayData.date).toLocaleDateString('vi-VN')}
+                                                    </span>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${dayData.type === 'thursday'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-green-100 text-green-800'
+                                                        }`}>
+                                                        {dayData.type === 'thursday' ? 'Thứ 5' : 'Chủ nhật'}
+                                                    </span>
+                                                    <span className="text-sm text-gray-600">
+                                                        ({dayData.studentCodes.length} thiếu nhi)
+                                                    </span>
+                                                </div>
+                                                <div className="text-sm text-gray-700">
+                                                    <div className="bg-white p-2 rounded border">
+                                                        <span className="font-mono text-xs">
+                                                            {dayData.studentCodes.join(', ')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+
                     </div>
                 )}
 
@@ -290,7 +337,7 @@ const ReportsPage = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-green-50 p-4 rounded-lg">
                                 <h4 className="font-medium text-green-800 mb-2">Điểm học tập</h4>
                                 <div className="space-y-1 text-sm">
@@ -358,9 +405,8 @@ const ReportsPage = () => {
                                     {reportData.ranking.slice(0, 10).map((student) => (
                                         <tr key={student.id} className="hover:bg-gray-50">
                                             <td className="px-4 py-3 text-sm font-bold text-gray-900">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    student.rank <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                                                }`}>
+                                                <span className={`px-2 py-1 rounded-full text-xs ${student.rank <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                                                    }`}>
                                                     #{student.rank}
                                                 </span>
                                             </td>
@@ -546,31 +592,28 @@ const ReportsPage = () => {
             {/* Report Types */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {reportTypes.map((type) => (
-                    <div 
-                        key={type.value} 
-                        className={`rounded-lg p-6 shadow-sm border transition-all cursor-pointer ${
-                            filters.reportType === type.value 
-                                ? getColorClasses(type.color)
-                                : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'
-                        }`}
+                    <div
+                        key={type.value}
+                        className={`rounded-lg p-6 shadow-sm border transition-all cursor-pointer ${filters.reportType === type.value
+                            ? getColorClasses(type.color)
+                            : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'
+                            }`}
                         onClick={() => setFilters(prev => ({ ...prev, reportType: type.value }))}
                     >
                         <div className="flex items-center gap-3 mb-4">
-                            <type.icon className={`w-8 h-8 ${
-                                filters.reportType === type.value 
-                                    ? `text-${type.color}-600` 
-                                    : 'text-gray-600'
-                            }`} />
+                            <type.icon className={`w-8 h-8 ${filters.reportType === type.value
+                                ? `text-${type.color}-600`
+                                : 'text-gray-600'
+                                }`} />
                             <h3 className="font-medium text-gray-900">{type.label}</h3>
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
                             {type.description}
                         </p>
-                        <div className={`text-sm font-medium ${
-                            filters.reportType === type.value 
-                                ? `text-${type.color}-700` 
-                                : 'text-blue-600'
-                        }`}>
+                        <div className={`text-sm font-medium ${filters.reportType === type.value
+                            ? `text-${type.color}-700`
+                            : 'text-blue-600'
+                            }`}>
                             {filters.reportType === type.value ? '✓ Đang chọn' : 'Chọn loại này →'}
                         </div>
                     </div>

@@ -22,41 +22,65 @@ export const reportsService = {
         return api.get('/reports/overview', params);
     },
 
-    // Export report
-    async exportReport(type, format = 'csv', filters = {}) {
+    // Export report - Updated for XLSX support
+    async exportReport(type, format = 'xlsx', filters = {}) {
         const params = new URLSearchParams({
             type,
             format,
             ...filters
         }).toString();
 
-        if (format === 'csv') {
-            // For CSV, trigger download
+        // For file exports (xlsx, csv), trigger download
+        if (format === 'xlsx' || format === 'csv') {
             const response = await fetch(`${api.defaults?.baseURL || ''}/api/reports/export?${params}`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token in localStorage
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
             if (!response.ok) {
-                throw new Error('Export failed');
+                const errorText = await response.text();
+                throw new Error(`Export failed: ${errorText}`);
             }
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `report_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+
+            // Generate filename based on format
+            const fileExtension = format === 'xlsx' ? 'xlsx' : 'csv';
+            const filename = this.generateReportFilename(type, fileExtension);
+            link.download = filename;
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
-            return { success: true, message: 'Đã tải xuống báo cáo' };
+            return {
+                success: true,
+                message: `Đã tải xuống báo cáo ${format.toUpperCase()}`,
+                filename
+            };
         } else {
             // For JSON, return data
             return api.get(`/reports/export?${params}`);
         }
+    },
+
+    // Generate consistent report filenames
+    generateReportFilename(type, extension) {
+        const date = new Date().toISOString().split('T')[0];
+        const typeNames = {
+            attendance: 'diem_danh',
+            ranking: 'xep_hang',
+            'grade-distribution': 'phan_bo_diem',
+            overview: 'tong_quan'
+        };
+
+        const typeName = typeNames[type] || type;
+        return `bao_cao_${typeName}_${date}.${extension}`;
     },
 
     // Utility methods
@@ -81,5 +105,15 @@ export const reportsService = {
                 academicYears: []
             };
         }
+    },
+
+    // Helper method for attendance report export specifically
+    async exportAttendanceReport(filters = {}) {
+        return this.exportReport('attendance', 'xlsx', filters);
+    },
+
+    // Helper method for ranking report export
+    async exportRankingReport(filters = {}) {
+        return this.exportReport('ranking', 'xlsx', filters);
     }
 };

@@ -324,6 +324,27 @@ const StudentListPage = () => {
         );
     };
 
+    const parseStudentName = (saintName, fullName) => {
+        if (!fullName) return { saintNameWithMiddleName: '', firstName: '' };
+
+        const words = fullName.trim().split(' ');
+        if (words.length === 0) return { saintNameWithMiddleName: '', firstName: '' };
+
+        // Tên là từ cuối cùng
+        const firstName = words[words.length - 1];
+
+        // Họ và tên lót là các từ còn lại
+        const middleName = words.slice(0, -1).join(' ');
+
+        // Tên thánh + họ tên lót
+        const saintNameWithMiddleName = saintName ? `${saintName} ${middleName}`.trim() : middleName;
+
+        return {
+            saintNameWithMiddleName,
+            firstName
+        };
+    };
+
     if (loading && !currentUser) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -456,7 +477,10 @@ const StudentListPage = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Thiếu nhi
+                                Tên thánh + Họ
+                            </th>
+                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Tên
                             </th>
                             <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Lớp / Tuổi
@@ -525,9 +549,11 @@ const StudentListPage = () => {
                             const age = calculateAge(student.birthDate);
                             const isEditingThisStudent = editingScores[student.id];
                             const isSaving = savingScores[student.id];
+                            const { saintNameWithMiddleName, firstName } = parseStudentName(student.saintName, student.fullName);
 
                             return (
                                 <tr key={student.id} className={`hover:bg-gray-50 ${isEditingThisStudent ? 'bg-blue-50' : ''} ${!student.isActive ? 'bg-red-50 opacity-75' : ''}`}>
+                                    {/* Cột Tên thánh + Họ lót */}
                                     <td className="px-4 py-4">
                                         <div className="flex items-center">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!student.isActive ? 'bg-gray-400' : 'bg-blue-600'}`}>
@@ -535,13 +561,20 @@ const StudentListPage = () => {
                                             </div>
                                             <div className="ml-3">
                                                 <div className={`text-sm font-medium ${!student.isActive ? 'text-gray-500' : 'text-gray-900'}`}>
-                                                    {student.saintName && `${student.saintName} `}{student.fullName}
+                                                    {saintNameWithMiddleName}
                                                     {!student.isActive && <span className="ml-2 text-xs text-red-600 font-semibold">(Đã xóa)</span>}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
                                                     {student.studentCode}
                                                 </div>
                                             </div>
+                                        </div>
+                                    </td>
+
+                                    {/* Cột Tên */}
+                                    <td className="px-3 py-4 align-top">
+                                        <div className={`text-sm font-medium mt-1 ${!student.isActive ? 'text-gray-500' : 'text-gray-900'}`}>
+                                            {firstName}
                                         </div>
                                     </td>
 
