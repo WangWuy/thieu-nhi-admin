@@ -49,8 +49,11 @@ export const authService = {
         return classTeachers[0]?.class || null;
     },
 
-    async changePassword(passwords) {
-        return api.post('/auth/change-password', passwords);
+    async changePassword(currentPassword, newPassword) {
+        return api.post('/auth/change-password', {
+            currentPassword,
+            newPassword
+        });
     },
 
     logout() {

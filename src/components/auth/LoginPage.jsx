@@ -28,12 +28,19 @@ const LoginPage = ({ onLogin }) => {
         e.preventDefault();
         setLoading(true);
         setError('');
-
+    
         try {
             const response = await authService.login(formData, rememberLogin);
             onLogin(response.user);
         } catch (err) {
-            setError(err.message || 'Đăng nhập thất bại');
+            // Hiển thị message từ server response
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err.message) {
+                setError(err.message);
+            } else {
+                setError('Đăng nhập thất bại');
+            }
         } finally {
             setLoading(false);
         }

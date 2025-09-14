@@ -554,3 +554,14 @@ button:disabled,
 .text-yellow-600:hover {
   color: #b45309 !important;
 }
+
+.btn-gray {
+  background: linear-gradient(135deg, #f9fafb, #e5e7eb) !important; /* từ gray-50 đến gray-200 */
+  color: #374151 !important; /* gray-700 */
+  border: 1px solid #d1d5db !important; /* gray-300 */
+}
+
+.btn-gray:hover {
+  background: linear-gradient(135deg, #e5e7eb, #d1d5db) !important;
+  color: #111827 !important; /* gray-900 */
+}

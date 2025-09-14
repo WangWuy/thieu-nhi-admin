@@ -107,12 +107,11 @@ apiClient.interceptors.response.use(
 
             switch (status) {
                 case 400:
-                    // Validation errors
-                    if (data.details) {
-                        const validationErrors = data.details.map(err => err.message).join(', ');
-                        throw new Error(`Dữ liệu không hợp lệ: ${validationErrors}`);
-                    }
-                    throw new Error(data.message || 'Dữ liệu không hợp lệ');
+                    // Validation errors - preserve original error structure
+                    const customError = new Error(data.message || 'Dữ liệu không hợp lệ');
+                    customError.response = error.response; // Preserve response object
+                    customError.status = status;
+                    throw customError;
 
                 case 401:
                     // Unauthorized - Token expired or invalid

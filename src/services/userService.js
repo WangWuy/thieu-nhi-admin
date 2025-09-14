@@ -81,17 +81,4 @@ export const userService = {
             return [];
         }
     },
-
-    // Thêm method để change password (match với backend auth)
-    async changePassword(currentPassword, newPassword) {
-        try {
-            return await api.post('/auth/change-password', { 
-                currentPassword, 
-                newPassword 
-            });
-        } catch (error) {
-            console.warn('🔄 changePassword using mock response:', error.message);
-            return { message: 'Đổi mật khẩu thành công (mock)' };
-        }
-    }
 };

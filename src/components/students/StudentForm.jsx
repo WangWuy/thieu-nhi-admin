@@ -64,8 +64,8 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
     // Calculate study average preview
     const calculateStudyAverage = () => {
         const { study45Hk1, examHk1, study45Hk2, examHk2 } = formData;
-        const total = parseFloat(study45Hk1) + parseFloat(study45Hk2) + 
-                     (parseFloat(examHk1) * 2) + (parseFloat(examHk2) * 2);
+        const total = parseFloat(study45Hk1) + parseFloat(study45Hk2) +
+            (parseFloat(examHk1) * 2) + (parseFloat(examHk2) * 2);
         return (total / 6).toFixed(1);
     };
 
@@ -97,7 +97,19 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
             await onSave(formData);
             onClose();
         } catch (error) {
-            setErrors({ submit: error.message });
+            console.log('Full error object:', error);
+            console.log('Error response:', error.response);
+            console.log('Error response data:', error.response?.data);
+            // Xử lý validation errors từ server
+            if (error.response?.data?.details) {
+                const serverErrors = {};
+                error.response.data.details.forEach(detail => {
+                    serverErrors[detail.path] = detail.msg;
+                });
+                setErrors(serverErrors);                
+            } else {
+                setErrors({ submit: error.response?.data?.message || error.message });
+            }
         } finally {
             setSaving(false);
         }
@@ -109,6 +121,11 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
+    };
+
+    const ErrorMessage = ({ error }) => {
+        if (!error) return null;
+        return <p className="text-red-600 text-xs mt-1">{error}</p>;
     };
 
     if (!isOpen) return null;
@@ -130,7 +147,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                             <User className="w-5 h-5 text-blue-600" />
                             Thông tin cơ bản
                         </h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Mã thiếu nhi *</label>
@@ -203,6 +220,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="0901234567"
                                 />
+                                <ErrorMessage error={errors.phoneNumber} />
                             </div>
 
                             <div>
@@ -214,6 +232,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="0901234567"
                                 />
+                                <ErrorMessage error={errors.parentPhone1} />
                             </div>
 
                             <div>
@@ -225,6 +244,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="0901234567"
                                 />
+                                <ErrorMessage error={errors.parentPhone2} />
                             </div>
 
                             <div className="md:col-span-2">
@@ -246,7 +266,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                             <Award className="w-5 h-5 text-blue-600" />
                             Điểm số giáo lý
                         </h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Học kỳ 1 */}
                             <div className="bg-white p-4 rounded-lg border border-blue-200">
@@ -266,7 +286,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                         />
                                         {errors.study45Hk1 && <p className="text-red-600 text-xs mt-1">{errors.study45Hk1}</p>}
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Điểm thi (×2)</label>
                                         <input
@@ -302,7 +322,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                         />
                                         {errors.study45Hk2 && <p className="text-red-600 text-xs mt-1">{errors.study45Hk2}</p>}
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Điểm thi (×2)</label>
                                         <input
@@ -347,11 +367,11 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                         </div>
                     </div>
 
-                    {errors.submit && (
+                    {/* {errors.submit && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                             {errors.submit}
                         </div>
-                    )}
+                    )} */}
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <button

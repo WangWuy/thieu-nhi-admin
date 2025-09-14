@@ -19,5 +19,17 @@ export const attendanceService = {
 
     async getAttendanceTrend(params = {}) {
         return api.get('/attendance/trend', params);
-    }
+    },
+
+    async previewAttendance(formData) {
+        return api.post('/import/attendance/preview', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    
+    async importAttendance(formData) {
+        return api.post('/import/attendance', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
 };

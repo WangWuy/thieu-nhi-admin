@@ -19,6 +19,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { academicYearService } from '../../services/academicYearService';
+import { authService } from '../../services/authService';
 
 const SettingsPage = ({ user }) => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -215,18 +216,29 @@ const SettingsPage = ({ user }) => {
         alert('Cài đặt đã được lưu!');
     };
 
-    const handlePasswordChange = () => {
+    const handlePasswordChange = async () => {
         if (formData.newPassword !== formData.confirmPassword) {
             alert('Mật khẩu xác nhận không khớp!');
             return;
         }
-        alert('Mật khẩu đã được thay đổi!');
-        setFormData(prev => ({
-            ...prev,
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        }));
+    
+        if (!formData.currentPassword || !formData.newPassword) {
+            alert('Vui lòng nhập đầy đủ thông tin!');
+            return;
+        }
+    
+        try {
+            await authService.changePassword(formData.currentPassword, formData.newPassword);
+            alert('Đổi mật khẩu thành công!');
+            setFormData(prev => ({
+                ...prev,
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }));
+        } catch (err) {
+            alert('Lỗi: ' + (err.response?.data?.message || err.message));
+        }
     };
 
     return (

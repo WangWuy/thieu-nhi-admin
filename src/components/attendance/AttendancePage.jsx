@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Calendar,
     Users,
     Check,
     X,
     Save,
-    Clock,
-    Filter
+    Filter,
+    Search
 } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceService';
 import { classService } from '../../services/classService';
 import { ATTENDANCE_TYPES } from '../../utils/constants';
 import { getAttendanceTypeName } from '../../utils/helpers';
+import ImportAttendanceModal from './ImportAttendanceModal';
 
 const AttendancePage = () => {
     const [classes, setClasses] = useState([]);
@@ -19,12 +20,40 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [classSearch, setClassSearch] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
+
+    // Helper functions để tính toán ngày và buổi
+    const getDateLimits = () => {
+        const today = new Date();
+        const currentDay = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+
+        return {
+            maxDate: today.toISOString().split('T')[0], // Chỉ không cho chọn tương lai
+            defaultType: currentDay === 0 ? ATTENDANCE_TYPES.SUNDAY : ATTENDANCE_TYPES.THURSDAY
+        };
+    };
+
+    const dateConfig = useMemo(() => getDateLimits(), []);
+
     const [filters, setFilters] = useState({
         classId: '',
         date: new Date().toISOString().split('T')[0],
-        type: ATTENDANCE_TYPES.SUNDAY
+        type: dateConfig.defaultType
     });
     const [attendanceData, setAttendanceData] = useState({});
+
+    // Filter classes dựa trên search
+    const filteredClasses = useMemo(() => {
+        if (!classSearch.trim()) return classes;
+
+        const searchLower = classSearch.toLowerCase();
+        return classes.filter(cls =>
+            cls.name.toLowerCase().includes(searchLower) ||
+            cls.department.displayName.toLowerCase().includes(searchLower)
+        );
+    }, [classes, classSearch]);
 
     useEffect(() => {
         fetchClasses();
@@ -35,6 +64,18 @@ const AttendancePage = () => {
             fetchAttendance();
         }
     }, [filters]);
+
+    // Auto update type khi đổi ngày
+    useEffect(() => {
+        const selectedDate = new Date(filters.date);
+        const dayOfWeek = selectedDate.getDay();
+
+        const newType = dayOfWeek === 0 ? ATTENDANCE_TYPES.SUNDAY : ATTENDANCE_TYPES.THURSDAY;
+
+        if (filters.type !== newType) {
+            setFilters(prev => ({ ...prev, type: newType }));
+        }
+    }, [filters.date]);
 
     const fetchClasses = async () => {
         try {
@@ -136,32 +177,94 @@ const AttendancePage = () => {
         setAttendanceData(newData);
     };
 
+    const handleClassSelect = (classId) => {
+        setFilters(prev => ({ ...prev, classId }));
+        setClassSearch(''); // Reset search sau khi chọn
+        setShowDropdown(false); // ✅ ẨN DROPDOWN SAU KHI CHỌN
+    };
+
+    const handleImportSuccess = async () => {
+        // Refresh attendance if same class is selected
+        if (filters.classId) {
+            await fetchAttendance();
+        }
+    };
+
     const presentCount = students.filter(s => attendanceData[s.id]?.isPresent).length;
     const absentCount = students.length - presentCount;
+
+    const selectedClass = classes.find(c => c.id == filters.classId);
 
     return (
         <div className="space-y-6">
             {/* Filters */}
             <div className="bg-gradient-to-r from-red-50 to-amber-50 p-6 rounded-lg shadow-sm border border-red-100">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Class Selection with Search */}
                     <div>
                         <label className="block text-sm font-medium text-red-700 mb-2">
                             Lớp *
                         </label>
-                        <select
-                            value={filters.classId}
-                            onChange={(e) => setFilters(prev => ({ ...prev, classId: e.target.value }))}
-                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
-                            <option value="">Chọn lớp</option>
-                            {classes.map(cls => (
-                                <option key={cls.id} value={cls.id}>
-                                    {cls.name} ({cls.department.displayName})
-                                </option>
-                            ))}
-                        </select>
+
+                        {/* Hiển thị lớp đã chọn hoặc search box */}
+                        {filters.classId && !classSearch ? (
+                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center justify-between">
+                                <div>
+                                    <div className="font-medium text-gray-800">{selectedClass?.name}</div>
+                                    <div className="text-xs text-gray-600">{selectedClass?.department.displayName}</div>
+                                </div>
+                                <button
+                                    onClick={() => setFilters(prev => ({ ...prev, classId: '' }))}
+                                    className="text-gray-400 hover:text-gray-600 ml-2"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <div className="relative">
+                                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Tìm kiếm lớp..."
+                                        value={classSearch}
+                                        onChange={(e) => setClassSearch(e.target.value)}
+                                        onFocus={() => setShowDropdown(true)} // ✅ HIỂN THỊ KHI FOCUS
+                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // ✅ ẨN KHI BLUR VỚI DELAY
+                                        className="w-full pl-11 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 search-input"
+                                    />
+                                </div>
+
+                                {/* ✅ DROPDOWN HIỂN THỊ KHI CÓ SEARCH HOẶC FOCUS */}
+                                {(showDropdown || classSearch) && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                        {filteredClasses.length > 0 ? (
+                                            filteredClasses.map(cls => (
+                                                <button
+                                                    key={cls.id}
+                                                    onClick={() => handleClassSelect(cls.id)}
+                                                    className="w-full text-left px-3 py-2 border-b border-gray-100 last:border-b-0 btn-gray"
+                                                >
+                                                    <div className="font-medium text-gray-800">{cls.name}</div>
+                                                    <div className="text-xs text-gray-600 mt-1">{cls.department.displayName}</div>
+                                                </button>
+                                            ))
+                                        ) : classSearch ? (
+                                            <div className="px-3 py-2 text-gray-500 text-sm">
+                                                Không tìm thấy lớp nào
+                                            </div>
+                                        ) : (
+                                            <div className="px-3 py-2 text-gray-500 text-sm">
+                                                Gõ để tìm kiếm lớp...
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
+                    {/* Date with restrictions */}
                     <div>
                         <label className="block text-sm font-medium text-red-700 mb-2">
                             Ngày *
@@ -170,22 +273,19 @@ const AttendancePage = () => {
                             type="date"
                             value={filters.date}
                             onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))}
+                            max={dateConfig.maxDate}
                             className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         />
                     </div>
 
+                    {/* Type - Auto selected and locked */}
                     <div>
                         <label className="block text-sm font-medium text-red-700 mb-2">
                             Buổi *
                         </label>
-                        <select
-                            value={filters.type}
-                            onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
-                            <option value={ATTENDANCE_TYPES.THURSDAY}>Thứ 5</option>
-                            <option value={ATTENDANCE_TYPES.SUNDAY}>Chủ nhật</option>
-                        </select>
+                        <div className="w-full px-3 py-3 border border-red-200 bg-red-50 rounded-lg text-red-700 font-medium">
+                            {getAttendanceTypeName(filters.type)}
+                        </div>
                     </div>
 
                     <div className="flex items-end">
@@ -253,6 +353,13 @@ const AttendancePage = () => {
                                 )}
                                 Lưu điểm danh
                             </button>
+                            <button
+                                onClick={() => setShowImportModal(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                            >
+                                {/* <Upload className="w-4 h-4" /> */}
+                                Import Excel
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -269,7 +376,7 @@ const AttendancePage = () => {
                 <div className="bg-white rounded-lg shadow-sm border border-red-100">
                     <div className="p-4 border-b border-red-100">
                         <h3 className="font-medium text-red-800">
-                            Điểm danh {filters.classId && classes.find(c => c.id == filters.classId)?.name} - {getAttendanceTypeName(filters.type)}
+                            Điểm danh {selectedClass?.name} - {getAttendanceTypeName(filters.type)}
                         </h3>
                         <p className="text-sm text-red-600">
                             Ngày: {new Date(filters.date).toLocaleDateString('vi-VN')}
@@ -340,6 +447,13 @@ const AttendancePage = () => {
                     <div className="text-red-500">Chọn lớp để bắt đầu điểm danh</div>
                 </div>
             )}
+
+            <ImportAttendanceModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                filters={filters}
+                onImportSuccess={handleImportSuccess}
+            />
         </div>
     );
 };

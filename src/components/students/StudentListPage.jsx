@@ -775,32 +775,20 @@ const StudentListPage = () => {
                             filters.isActiveFilter === 'false' ? (
                                 'Hiện tại không có thiếu nhi nào đã nghỉ'
                             ) :
-                                /* Đang filter theo lớp cụ thể */
-                                selectedClass ? (
-                                    `Không có thiếu nhi nào trong lớp ${selectedClass.name}`
-                                ) : (
+                                /* Nếu có searchInput thì ưu tiên hiện thông báo tìm kiếm */
+                                searchInput.length > 0 ? (
                                     'Không tìm thấy thiếu nhi nào'
-                                )}
+                                ) :
+                                    /* Đang filter theo lớp cụ thể */
+                                    selectedClass ? (
+                                        `Không có thiếu nhi nào trong lớp ${selectedClass.name}`
+                                    ) : (
+                                        'Không tìm thấy thiếu nhi nào'
+                                    )}
                     </div>
-
-                    {/* Button thêm mới - chỉ hiện khi: */}
-                    {/* 1. Không phải đang xem thiếu nhi đã nghỉ */}
-                    {/* 2. GLV phải có lớp được assigned */}
-                    {/* 3. Hoặc không phải GLV */}
-                    {filters.isActiveFilter !== 'false' &&
-                        (currentUser?.role !== 'giao_ly_vien' || currentUser?.assignedClass) && (
-                            <div className="flex justify-center gap-3">
-                                <button
-                                    onClick={() => setShowCreateModal(true)}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Thêm thiếu nhi mới
-                                </button>
-                            </div>
-                        )}
                 </div>
             )}
+
 
             {/* Modals */}
             <StudentForm
