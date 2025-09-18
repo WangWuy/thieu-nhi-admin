@@ -32,4 +32,18 @@ export const attendanceService = {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
     },
+
+    async getTodayAttendanceStatus({ studentCodes, date, type }) {
+        return api.post('/attendance/today-status', 
+            { studentCodes }, 
+            { queryParams: { 
+                date: date.toISOString().split('T')[0], 
+                type 
+            }}
+        );
+    },
+
+    async undoAttendance(attendanceData) {
+        return api.post('/attendance/undo', attendanceData);
+    },
 };

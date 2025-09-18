@@ -208,13 +208,18 @@ class ApiService {
 
     // POST with optimistic updates
     async post(endpoint, data = {}, options = {}) {
-        const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+        const { queryParams, ...restOptions } = options;
+        let url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+
+        if (queryParams) {
+            const params = new URLSearchParams(queryParams);
+            url += `?${params.toString()}`;
+        }
 
         try {
-            const response = await this.client.post(url, data, options);
+            const response = await this.client.post(url, data, restOptions);
             return response.data;
         } catch (error) {
-            // Log for debugging
             console.error(`POST ${url} failed:`, error.message);
             throw error;
         }

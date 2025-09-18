@@ -6,8 +6,10 @@ import {
     X,
     Save,
     Filter,
-    Search
+    Search,
+    Undo
 } from 'lucide-react';
+import { studentService } from '../../services/studentService';
 import { attendanceService } from '../../services/attendanceService';
 import { classService } from '../../services/classService';
 import { ATTENDANCE_TYPES } from '../../utils/constants';
@@ -23,6 +25,7 @@ const AttendancePage = () => {
     const [classSearch, setClassSearch] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [summary, setSummary] = useState({ total: 0, attended: 0, absent: 0, notMarked: 0 });
 
     // Helper functions để tính toán ngày và buổi
     const getDateLimits = () => {
@@ -89,28 +92,61 @@ const AttendancePage = () => {
     const fetchAttendance = async () => {
         try {
             setLoading(true);
-            const data = await attendanceService.getAttendanceByClass(filters.classId, {
-                date: filters.date,
-                type: filters.type
+
+            // 1) Lấy đúng response từ studentService
+            const res = await studentService.getStudents({
+                classFilter: filters.classId,
+                page: 1,
+                limit: 50,
+                // thêm các params khác nếu cần: academicYearId, isActive, search...
             });
 
-            setStudents(data);
+            const studentsData = res?.students || [];
 
-            // Convert to attendance data object
-            const attendance = {};
-            data.forEach(student => {
-                attendance[student.id] = {
-                    isPresent: student.attendanceRecord?.isPresent || false,
-                    note: student.attendanceRecord?.note || ''
+            // 2) Set students state ngay để render danh sách
+            setStudents(studentsData);
+
+            // 3) Chuẩn bị danh sách studentCodes để gọi status
+            const allStudentCodes = studentsData.map(s => s.studentCode ?? s.qrCode ?? String(s.id));
+
+            let todayStatus = null;
+            if (allStudentCodes.length > 0) {
+                todayStatus = await attendanceService.getTodayAttendanceStatus({
+                    studentCodes: allStudentCodes,
+                    date: new Date(filters.date),
+                    type: filters.type
+                });
+            }
+
+            // 4) Merge vào attendanceData dưới dạng object keyed by student.id
+            const attendanceObj = {};
+            studentsData.forEach(student => {
+                // thử lấy status theo studentCode, rồi fallback theo id (tùy API trả key nào)
+                const statusRecord =
+                    todayStatus?.attendanceStatus?.[student.studentCode] ||
+                    todayStatus?.attendanceStatus?.[student.id] ||
+                    null;
+
+                attendanceObj[student.id] = {
+                    isPresent: statusRecord?.isPresent ?? student.attendanceRecord?.isPresent ?? false,
+                    note: statusRecord?.note ?? student.attendanceRecord?.note ?? ''
                 };
             });
-            setAttendanceData(attendance);
+
+            setAttendanceData(attendanceObj);
+
+            if (todayStatus?.summary) {
+                setSummary(todayStatus.summary);
+            }
+
         } catch (err) {
+            console.error("Fetch attendance error:", err);
             setError('Không thể tải dữ liệu điểm danh');
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleAttendanceChange = (studentId, field, value) => {
         setAttendanceData(prev => ({
@@ -122,11 +158,12 @@ const AttendancePage = () => {
         }));
     };
 
+    // ✅ UPDATED: Use universalAttendance endpoint like app
     const handleSaveAttendance = async () => {
         try {
             setSaving(true);
 
-            // Collect student codes from present students (use studentCode directly from data)
+            // Collect present student codes
             const presentStudentCodes = students
                 .filter(student => attendanceData[student.id]?.isPresent)
                 .map(student => student.studentCode);
@@ -136,22 +173,68 @@ const AttendancePage = () => {
                 return;
             }
 
+            // Use universalAttendance endpoint like app
             await attendanceService.universalAttendance({
                 studentCodes: presentStudentCodes,
                 attendanceDate: filters.date,
                 attendanceType: filters.type,
-                note: 'Manual attendance marking'
+                note: 'Manual web attendance'
             });
 
             alert(`Lưu điểm danh thành công cho ${presentStudentCodes.length} thiếu nhi!`);
 
-            // Refresh data
-            await fetchAttendance();
+            // Refresh data with status check
+            await refreshAttendanceStatus();
 
         } catch (err) {
             alert('Lỗi: ' + err.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleUndoSingleStudent = async (student) => {
+        try {
+            setSaving(true);
+
+            await attendanceService.undoAttendance({
+                studentCodes: [student.studentCode],
+                attendanceDate: filters.date,
+                attendanceType: filters.type,
+                note: 'Single student undo'
+            });
+
+            await refreshAttendanceStatus();
+
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Function to refresh attendance status after save/undo
+    const refreshAttendanceStatus = async () => {
+        try {
+            const allStudentCodes = students.map(s => s.studentCode);
+
+            if (allStudentCodes.length > 0) {
+                const statusData = await attendanceService.getTodayAttendanceStatus({
+                    studentCodes: allStudentCodes,
+                    date: new Date(filters.date),
+                    type: filters.type
+                });
+
+                console.log('📊 Today attendance status:', statusData);
+            }
+
+            // Always refresh full data
+            await fetchAttendance();
+
+        } catch (err) {
+            console.error('Error refreshing attendance status:', err);
+            // Fallback to normal refresh
+            await fetchAttendance();
         }
     };
 
@@ -180,7 +263,7 @@ const AttendancePage = () => {
     const handleClassSelect = (classId) => {
         setFilters(prev => ({ ...prev, classId }));
         setClassSearch(''); // Reset search sau khi chọn
-        setShowDropdown(false); // ✅ ẨN DROPDOWN SAU KHI CHỌN
+        setShowDropdown(false); // Ẩn dropdown sau khi chọn
     };
 
     const handleImportSuccess = async () => {
@@ -190,8 +273,13 @@ const AttendancePage = () => {
         }
     };
 
-    const presentCount = students.filter(s => attendanceData[s.id]?.isPresent).length;
-    const absentCount = students.length - presentCount;
+    // ✅ Tính theo attendanceData thay vì attendanceRecord
+    const presentCount = students.filter(
+        (s) => attendanceData[s.id]?.isPresent === true
+    ).length;
+
+    // Show save button if any student is marked as present
+    const hasSelection = presentCount > 0;
 
     const selectedClass = classes.find(c => c.id == filters.classId);
 
@@ -229,13 +317,13 @@ const AttendancePage = () => {
                                         placeholder="Tìm kiếm lớp..."
                                         value={classSearch}
                                         onChange={(e) => setClassSearch(e.target.value)}
-                                        onFocus={() => setShowDropdown(true)} // ✅ HIỂN THỊ KHI FOCUS
-                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // ✅ ẨN KHI BLUR VỚI DELAY
+                                        onFocus={() => setShowDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                                         className="w-full pl-11 pr-4 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 search-input"
                                     />
                                 </div>
 
-                                {/* ✅ DROPDOWN HIỂN THỊ KHI CÓ SEARCH HOẶC FOCUS */}
+                                {/* Dropdown hiển thị khi có search hoặc focus */}
                                 {(showDropdown || classSearch) && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                         {filteredClasses.length > 0 ? (
@@ -313,17 +401,25 @@ const AttendancePage = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div className="flex items-center gap-6">
                             <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                                <div className="text-2xl font-bold text-green-600">{presentCount}</div>
+                                <div className="text-2xl font-bold text-green-600">{summary.attended}</div>
                                 <div className="text-sm text-green-700">Có mặt</div>
                             </div>
+
                             <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                                <div className="text-2xl font-bold text-red-600">{absentCount}</div>
+                                <div className="text-2xl font-bold text-red-600">{summary.absent}</div>
                                 <div className="text-sm text-red-700">Vắng mặt</div>
                             </div>
+
                             <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="text-2xl font-bold text-blue-600">{students.length}</div>
+                                <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
                                 <div className="text-sm text-blue-700">Tổng số</div>
                             </div>
+
+                            <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <div className="text-2xl font-bold text-yellow-600">{summary.notMarked}</div>
+                                <div className="text-sm text-yellow-700">Chưa điểm danh</div>
+                            </div>
+
                         </div>
 
                         <div className="flex flex-wrap gap-2">
@@ -341,23 +437,25 @@ const AttendancePage = () => {
                                 <X className="w-4 h-4" />
                                 Vắng tất cả
                             </button>
-                            <button
-                                onClick={handleSaveAttendance}
-                                disabled={saving}
-                                className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-                            >
-                                {saving ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                ) : (
-                                    <Save className="w-4 h-4" />
-                                )}
-                                Lưu điểm danh
-                            </button>
+                            {/* ✅ Show save button only when user has made selections */}
+                            {hasSelection && (
+                                <button
+                                    onClick={handleSaveAttendance}
+                                    disabled={saving}
+                                    className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                                >
+                                    {saving ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <Save className="w-4 h-4" />
+                                    )}
+                                    Lưu điểm danh
+                                </button>
+                            )}
                             <button
                                 onClick={() => setShowImportModal(true)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
                             >
-                                {/* <Upload className="w-4 h-4" /> */}
                                 Import Excel
                             </button>
                         </div>
@@ -388,39 +486,70 @@ const AttendancePage = () => {
                             <div key={student.id} className="p-4 hover:bg-red-50">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                            <Users className="w-5 h-5 text-white" />
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${student.attendanceRecord?.isPresent
+                                            ? 'bg-green-600'
+                                            : student.attendanceRecord
+                                                ? 'bg-red-600'
+                                                : 'bg-red-600'
+                                            }`}>
+                                            {student.attendanceRecord?.isPresent ? (
+                                                <Check className="w-5 h-5 text-white" />
+                                            ) : student.attendanceRecord ? (
+                                                <X className="w-5 h-5 text-white" />
+                                            ) : (
+                                                <Users className="w-5 h-5 text-white" />
+                                            )}
                                         </div>
                                         <div>
                                             <div className="font-medium text-red-800">
                                                 {student.saintName && `${student.saintName} `}{student.fullName}
                                             </div>
                                             <div className="text-sm text-red-500">{student.studentCode}</div>
+                                            {student.attendanceRecord && (
+                                                <div className={`text-xs font-medium ${student.attendanceRecord.isPresent
+                                                    ? 'text-green-600'
+                                                    : 'text-red-600'
+                                                    }`}>
+                                                    {student.attendanceRecord.isPresent ? 'Đã có mặt' : 'Đã vắng'}
+                                                    {student.attendanceRecord.markedAt &&
+                                                        ` - ${new Date(student.attendanceRecord.markedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                                                    }
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleAttendanceChange(student.id, 'isPresent', true)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id]?.isPresent
-                                                    ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-green-50'
-                                                    }`}
-                                            >
-                                                <Check className="w-4 h-4 inline mr-1" />
-                                                Có mặt
-                                            </button>
-                                            <button
-                                                onClick={() => handleAttendanceChange(student.id, 'isPresent', false)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id]?.isPresent === false
-                                                    ? 'bg-red-100 text-red-800 border-2 border-red-300'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-red-50'
-                                                    }`}
-                                            >
-                                                <X className="w-4 h-4 inline mr-1" />
-                                                Vắng
-                                            </button>
+                                            {attendanceData[student.id]?.isPresent ? (
+                                                // Nếu đã điểm danh -> chỉ hiển thị nút Hủy
+                                                <button
+                                                    onClick={() => handleUndoSingleStudent(student)}
+                                                    disabled={saving}
+                                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-100 text-orange-800 border-2 border-orange-300 hover:bg-orange-200 transition-colors"
+                                                >
+                                                    {saving ? (
+                                                        <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin inline mr-1"></div>
+                                                    ) : (
+                                                        <Undo className="w-4 h-4 inline mr-1" />
+                                                    )}
+                                                    Hủy
+                                                </button>
+                                            ) : (
+                                                // Nếu chưa điểm danh -> hiển thị nút Có mặt
+                                                <button
+                                                    onClick={() => handleAttendanceChange(student.id, 'isPresent', true)}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id]?.isPresent
+                                                        ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-green-50'
+                                                        }`}
+                                                >
+                                                    <Check className="w-4 h-4 inline mr-1" />
+                                                    Có mặt
+                                                </button>
+                                            )}
+
+
                                         </div>
 
                                         <input
