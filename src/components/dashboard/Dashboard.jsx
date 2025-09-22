@@ -37,38 +37,38 @@ const Dashboard = ({ user }) => {
                     totalTeachers: 0
                 },
                 departmentStats: [
-                    { 
-                        id: 1, 
-                        displayName: 'Chiên Con', 
-                        totalClasses: 4, 
-                        totalStudents: 0, 
+                    {
+                        id: 1,
+                        displayName: 'Chiên Con',
+                        totalClasses: 4,
+                        totalStudents: 0,
                         totalTeachers: 0,
                         averageAttendance: 0,
                         averageStudyScore: 0
                     },
-                    { 
-                        id: 2, 
-                        displayName: 'Ấu Nhi', 
-                        totalClasses: 15, 
-                        totalStudents: 0, 
+                    {
+                        id: 2,
+                        displayName: 'Ấu Nhi',
+                        totalClasses: 15,
+                        totalStudents: 0,
                         totalTeachers: 0,
                         averageAttendance: 0,
                         averageStudyScore: 0
                     },
-                    { 
-                        id: 3, 
-                        displayName: 'Thiếu Nhi', 
-                        totalClasses: 15, 
-                        totalStudents: 0, 
+                    {
+                        id: 3,
+                        displayName: 'Thiếu Nhi',
+                        totalClasses: 15,
+                        totalStudents: 0,
                         totalTeachers: 0,
                         averageAttendance: 0,
                         averageStudyScore: 0
                     },
-                    { 
-                        id: 4, 
-                        displayName: 'Nghĩa Sĩ', 
-                        totalClasses: 14, 
-                        totalStudents: 0, 
+                    {
+                        id: 4,
+                        displayName: 'Nghĩa Sĩ',
+                        totalClasses: 14,
+                        totalStudents: 0,
                         totalTeachers: 0,
                         averageAttendance: 0,
                         averageStudyScore: 0
@@ -289,7 +289,7 @@ const Dashboard = ({ user }) => {
                                         <span className="text-red-600">Giáo lý viên:</span>
                                         <span className="font-medium text-red-800">{dept.totalTeachers}</span>
                                     </div>
-                                    
+
                                     {/* Score Stats */}
                                     <div className="pt-2 mt-2 border-t border-red-100">
                                         <div className="flex justify-between text-xs">
@@ -328,8 +328,8 @@ const Dashboard = ({ user }) => {
                                     <span className="font-medium">{stats.recentAttendance.thursday.present}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-red-600">Vắng mặt:</span>
-                                    <span className="font-medium">{stats.recentAttendance.thursday.absent}</span>
+                                    <span className="text-gray-600">Chưa điểm danh:</span>
+                                    <span className="font-medium">{stats.recentAttendance.thursday.notMarked}</span>
                                 </div>
                             </div>
                         </div>
@@ -341,8 +341,8 @@ const Dashboard = ({ user }) => {
                                     <span className="font-medium">{stats.recentAttendance.sunday.present}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-red-600">Vắng mặt:</span>
-                                    <span className="font-medium">{stats.recentAttendance.sunday.absent}</span>
+                                    <span className="text-gray-600">Chưa điểm danh:</span>
+                                    <span className="font-medium">{stats.recentAttendance.sunday.notMarked}</span>
                                 </div>
                             </div>
                         </div>
