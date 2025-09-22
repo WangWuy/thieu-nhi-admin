@@ -359,7 +359,7 @@ const AttendancePage = () => {
     return (
         <div className="space-y-6">
             {/* Filters */}
-            <div className="bg-gradient-to-r from-red-50 to-amber-50 p-6 rounded-lg shadow-sm border border-red-100">
+            <div className=" from-red-50 to-amber-50 p-6 rounded-lg shadow-sm border border-red-100">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Class Selection with Search */}
                     <div>

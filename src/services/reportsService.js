@@ -32,31 +32,10 @@ export const reportsService = {
 
         // For file exports (xlsx, csv), trigger download
         if (format === 'xlsx' || format === 'csv') {
-            const response = await fetch(`${api.defaults?.baseURL || ''}/api/reports/export?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Export failed: ${errorText}`);
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-
-            // Generate filename based on format
             const fileExtension = format === 'xlsx' ? 'xlsx' : 'csv';
             const filename = this.generateReportFilename(type, fileExtension);
-            link.download = filename;
 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            await api.download(`/reports/export?${params}`, filename);
 
             return {
                 success: true,
@@ -65,7 +44,7 @@ export const reportsService = {
             };
         } else {
             // For JSON, return data
-            return api.get(`/reports/export?${params}`);
+            return api.get('/reports/export', { type, format, ...filters });
         }
     },
 
