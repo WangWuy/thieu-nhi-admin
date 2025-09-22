@@ -713,8 +713,8 @@ const SettingsPage = ({ user }) => {
                                     </div>
 
                                     <div className="text-sm text-red-600">
-                                        <p><strong>Phiên bản:</strong> 1.0.0</p>
-                                        <p><strong>Cập nhật cuối:</strong> 15/01/2024</p>
+                                        <p><strong>Phiên bản:</strong> {import.meta.env.VITE_APP_VERSION || 'v1.0.0'}</p>
+                                        <p><strong>Cập nhật cuối:</strong> 22/09/2025</p>
                                     </div>
                                 </div>
                             </div>
