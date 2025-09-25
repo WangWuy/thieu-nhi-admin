@@ -633,7 +633,7 @@ const StudentListPage = () => {
                                     </td>
                                     <td className="px-2 py-4 text-center bg-blue-50">
                                         <div className="text-sm font-bold text-blue-700">
-                                            {parseFloat(student.studyAverage || 0).toFixed(1)}
+                                            {parseFloat(student.studyAverage || 0).toFixed(2)}
                                         </div>
                                     </td>
                                     <td className="px-2 py-4 text-center bg-green-50">
@@ -648,12 +648,12 @@ const StudentListPage = () => {
                                     </td>
                                     <td className="px-2 py-4 text-center bg-green-50">
                                         <div className="text-sm font-bold text-green-700">
-                                            {parseFloat(student.attendanceAverage || 0).toFixed(1)}
+                                            {parseFloat(student.attendanceAverage || 0).toFixed(2)}
                                         </div>
                                     </td>
                                     <td className="px-2 py-4 text-center bg-purple-50">
                                         <div className="text-lg font-bold text-purple-700">
-                                            {parseFloat(student.finalAverage || 0).toFixed(1)}
+                                            {parseFloat(student.finalAverage || 0).toFixed(2)}
                                         </div>
                                     </td>
 

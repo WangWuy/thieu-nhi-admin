@@ -11,9 +11,9 @@ import {
     FileSpreadsheet
 } from 'lucide-react';
 import { reportsService } from '../../services/reportsService';
-import PDFExportButton from './PDFExportButton';
 
 const ReportsPage = () => {
+    const [attendanceTypeFilter, setAttendanceTypeFilter] = useState('all'); // 'all', 'thursday', 'sunday'
     const [loading, setLoading] = useState(false);
     const [exportLoading, setExportLoading] = useState('');
     const [error, setError] = useState('');
@@ -140,20 +140,19 @@ const ReportsPage = () => {
             setError('Vui lòng chọn lớp để tạo báo cáo điểm danh');
             return;
         }
+        
         try {
             setExportLoading(format);
-
+    
             const exportFilters = {
                 startDate: filters.startDate,
                 endDate: filters.endDate,
-                ...(filters.classId && { classId: filters.classId }),
-                ...(filters.departmentId && { departmentId: filters.departmentId }),
-                ...(filters.academicYearId && { academicYearId: filters.academicYearId })
+                classId: filters.classId,
+                ...(attendanceTypeFilter !== 'all' && { attendanceType: attendanceTypeFilter })
             };
-
-            // Gọi API export với type và format
+    
             await reportsService.exportReport(filters.reportType, format, exportFilters);
-
+    
         } catch (err) {
             setError(err.message || 'Không thể xuất báo cáo');
         } finally {
@@ -173,9 +172,9 @@ const ReportsPage = () => {
 
     const renderReportPreview = () => {
         if (!reportData) return null;
-    
+
         const currentReportType = reportTypes.find(type => type.value === filters.reportType);
-    
+
         return (
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
@@ -198,7 +197,7 @@ const ReportsPage = () => {
                         </button>
                     </div>
                 </div>
-    
+
                 {filters.reportType === 'attendance' && (
                     <div className="space-y-4">
                         {(!reportData.attendanceData || reportData.attendanceData.length === 0) ? (
@@ -237,7 +236,7 @@ const ReportsPage = () => {
                                         <div className="text-sm text-gray-600">Tổng lượt điểm danh</div>
                                     </div>
                                 </div>
-    
+
                                 {/* Hiển thị table điểm danh chi tiết */}
                                 <div className="max-h-96 overflow-auto">
                                     <table className="min-w-full divide-y divide-gray-200">
@@ -288,7 +287,7 @@ const ReportsPage = () => {
                                         </div>
                                     )}
                                 </div>
-    
+
                                 {/* Hiển thị mã thiếu nhi theo ngày */}
                                 {reportData.attendanceByDate && Object.keys(reportData.attendanceByDate).length > 0 && (
                                     <div className="mt-6">
@@ -329,7 +328,7 @@ const ReportsPage = () => {
                         )}
                     </div>
                 )}
-    
+
                 {filters.reportType === 'grade-distribution' && (
                     <div className="space-y-4">
                         {(!reportData.distribution || reportData.totalStudents === 0) ? (
@@ -362,7 +361,7 @@ const ReportsPage = () => {
                                         </div>
                                     </div>
                                 </div>
-    
+
                                 <div className="bg-green-50 p-4 rounded-lg">
                                     <h4 className="font-medium text-green-800 mb-2">Điểm học tập</h4>
                                     <div className="space-y-1 text-sm">
@@ -384,7 +383,7 @@ const ReportsPage = () => {
                                         </div>
                                     </div>
                                 </div>
-    
+
                                 <div className="bg-purple-50 p-4 rounded-lg">
                                     <h4 className="font-medium text-purple-800 mb-2">Điểm tổng kết</h4>
                                     <div className="space-y-1 text-sm">
@@ -410,7 +409,7 @@ const ReportsPage = () => {
                         )}
                     </div>
                 )}
-    
+
                 {filters.reportType === 'student-ranking' && (
                     <div className="space-y-4">
                         {(!reportData.ranking || reportData.ranking.length === 0) ? (
@@ -458,7 +457,7 @@ const ReportsPage = () => {
                         )}
                     </div>
                 )}
-    
+
                 {filters.reportType === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-blue-50 p-4 rounded-lg">
@@ -594,6 +593,21 @@ const ReportsPage = () => {
                                 {availableFilters.academicYears.map(year => (
                                     <option key={year.id} value={year.id}>{year.name}</option>
                                 ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Loại điểm danh (tùy chọn)
+                            </label>
+                            <select
+                                value={attendanceTypeFilter}
+                                onChange={(e) => setAttendanceTypeFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">Tất cả</option>
+                                <option value="thursday">Chỉ Thứ 5</option>
+                                <option value="sunday">Chỉ Chủ nhật</option>
                             </select>
                         </div>
                     </div>

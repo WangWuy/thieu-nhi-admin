@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Award, Calculator } from 'lucide-react';
+import { User, Award, Calculator, FileText } from 'lucide-react';
 
 const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], defaultClassId }) => {
     const [formData, setFormData] = useState({
@@ -11,6 +11,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
         parentPhone1: '',
         parentPhone2: '',
         address: '',
+        note: '',
         classId: '',
         // Score fields
         study45Hk1: 0,
@@ -32,6 +33,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                 parentPhone1: student.parentPhone1 || '',
                 parentPhone2: student.parentPhone2 || '',
                 address: student.address || '',
+                note: student.note || '',
                 classId: student.classId || defaultClassId || '',
                 // Score fields
                 study45Hk1: student.study45Hk1 || 0,
@@ -40,7 +42,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                 examHk2: student.examHk2 || 0
             });
         } else {
-            // Reset form với defaultClassId khi tạo mới
+            // Reset form with defaultClassId when creating new
             setFormData({
                 studentCode: '',
                 saintName: '',
@@ -50,6 +52,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                 parentPhone1: '',
                 parentPhone2: '',
                 address: '',
+                note: '',
                 classId: defaultClassId || '',
                 // Score fields
                 study45Hk1: 0,
@@ -100,7 +103,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
             console.log('Full error object:', error);
             console.log('Error response:', error.response);
             console.log('Error response data:', error.response?.data);
-            // Xử lý validation errors từ server
+            // Handle validation errors from server
             if (error.response?.data?.details) {
                 const serverErrors = {};
                 error.response.data.details.forEach(detail => {
@@ -260,6 +263,25 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                         </div>
                     </div>
 
+                    {/* Note Section */}
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-yellow-600" />
+                            Ghi chú
+                        </h3>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Ghi chú về thiếu nhi</label>
+                            <textarea
+                                value={formData.note}
+                                onChange={(e) => handleChange('note', e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                rows={3}
+                                placeholder="VD: Thiếu nhi có tập trung tốt, rất hăng hái trong việc học..."
+                            />
+                            <ErrorMessage error={errors.note} />
+                        </div>
+                    </div>
+
                     {/* Score Information */}
                     <div className="bg-blue-50 p-4 rounded-lg">
                         <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
@@ -288,7 +310,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Điểm thi (×2)</label>
+                                        <label className="block text-sm font-medium mb-1">Điểm thi (x2)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -324,7 +346,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Điểm thi (×2)</label>
+                                        <label className="block text-sm font-medium mb-1">Điểm thi (x2)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -351,7 +373,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                                 {calculateStudyAverage()}
                             </div>
                             <div className="text-xs text-blue-600 mt-1">
-                                Công thức: (45' HK1 + 45' HK2 + Thi HK1×2 + Thi HK2×2) ÷ 6
+                                Công thức: (45' HK1 + 45' HK2 + Thi HK1x2 + Thi HK2x2) / 6
                             </div>
                         </div>
 
@@ -360,18 +382,12 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                             <div className="text-sm text-yellow-800">
                                 <strong>Lưu ý:</strong> Điểm điểm danh và điểm tổng sẽ được tính tự động dựa trên:
                                 <ul className="list-disc list-inside mt-1 text-xs">
-                                    <li>Điểm điểm danh: Từ việc điểm danh thứ 5 và chủ nhật</li>
-                                    <li>Điểm tổng: Điểm giáo lý × 0.6 + Điểm điểm danh × 0.4</li>
+                                    <li>Điểm điểm danh: Từ việc điểm danh thứ 5 và Chủ nhật</li>
+                                    <li>Điểm tổng: Điểm giáo lý x 0.6 + Điểm điểm danh x 0.4</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-
-                    {/* {errors.submit && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                            {errors.submit}
-                        </div>
-                    )} */}
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <button
