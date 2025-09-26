@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Camera, RefreshCw } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
-const ImageExportButton = ({ reportData, filters, className = "" }) => {
+const AttendanceImageExport = ({ reportData, filters, className = "" }) => {
     const [exporting, setExporting] = useState(false);
 
     const handleExportImage = async () => {
@@ -178,15 +178,15 @@ const generateAttendanceImageHTML = (reportData, filters) => {
             <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
                 <thead>
                     <tr style="background-color: #f0f0f0;">
-                        <th style="border: 2px solid #000; padding: 8px; text-align: center; vertical-align: middle; font-weight: bold; font-size: 26px; width: 50px; color: black;">STT</th>
-                        <th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 26px; width: 100px; color: black;">Tên thánh</th>
-                        <th colspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 26px; width: 280px; color: black;">Họ và tên</th>
+                        <th style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-weight: bold; font-size: 26px; width: 50px; color: black;">STT</th>
+                        <th style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-weight: bold; font-size: 26px; width: 100px; color: black;">Tên thánh</th>
+                        <th colspan="2" style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-weight: bold; font-size: 26px; width: 280px; color: black;">Họ và tên</th>
                         ${sortedColumns.map(([columnKey, columnInfo], index) => {
         const dateObj = new Date(columnInfo.date);
         const day = String(dateObj.getDate()).padStart(2, '0');
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const bgColor = '#e8f5e8'; // Màu nền xanh nhạt cho header
-        return `<th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 26px; width: 70px; background-color: ${bgColor}; color: black;">${day}/${month}</th>`;
+        return `<th style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-weight: bold; font-size: 26px; width: 70px; background-color: ${bgColor}; color: black;">${day}/${month}</th>`;
     }).join('')}
                     </tr>
                 </thead>
@@ -198,15 +198,15 @@ const generateAttendanceImageHTML = (reportData, filters) => {
         const lastAndMiddleName = nameParts.slice(0, -1).join(' ') || '';
 
         return `
-                                <tr style="background-color: ${index % 2 === 0 ? '#f8fdf8' : 'white'};">
-                                    <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 26px; color: black;">${index + 1}</td>
-                                    <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 26px; color: black;">${studentData.student.saintName || ''}</td>
-                                    <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: 2px solid #000; border-right: none; padding: 8px; text-align: left; padding-left: 12px; font-size: 26px; color: black; width: 160px;">${lastAndMiddleName}</td>
-                                    <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: none; border-right: 2px solid #000; padding: 8px; text-align: center; font-size: 26px; color: black; width: 100px;">${firstName}</td>
+                                <tr>
+                                    <td style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 26px; color: black;">${index + 1}</td>
+                                    <td style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 26px; color: black;">${studentData.student.saintName || ''}</td>
+                                    <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: 2px solid #000; border-right: none; padding: 6px 8px 24px 12px; text-align: left; font-size: 26px; color: black; width: 160px;">${lastAndMiddleName}</td>
+                                    <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: none; border-right: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 26px; color: black; width: 100px;">${firstName}</td>
                                     ${sortedColumns.map(([columnKey, columnInfo], colIndex) => {
             const isPresent = studentData.attendance[columnKey];
-            const bgColor = isPresent ? '#ffffff' : '#e8f5e8'; // Màu nền khác nhau nếu có mặt hay không
-            return `<td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 20px; font-weight: bold; background-color: ${bgColor}; color: black;">${isPresent ? 'X' : ''}</td>`;
+            const bgColor = isPresent ? '#e8f5e8' : '#fff'; // Màu nền khác nhau nếu có mặt hay không
+            return `<td style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 20px; font-weight: bold; background-color: ${bgColor}; color: black;">${isPresent ? 'X' : ''}</td>`;
         }).join('')}
                                 </tr>
                             `;
@@ -223,4 +223,4 @@ const generateAttendanceImageHTML = (reportData, filters) => {
         `;
 };
 
-export default ImageExportButton;
+export default AttendanceImageExport;

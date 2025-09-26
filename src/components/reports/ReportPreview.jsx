@@ -1,7 +1,7 @@
 import { Eye } from 'lucide-react';
 import AttendancePreview from './previews/AttendancePreview';
 import StudentScoresPreview from './previews/StudentScoresPreview';
-import ImageExportButton from './ImageExportButton';
+import ImageExportButton from './AttendanceImageExport';
 import ScoresImageExport from './ScoresImageExport';
 import CorrectExcelExport from './CorrectExcelExport';
 
