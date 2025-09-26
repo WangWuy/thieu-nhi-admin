@@ -14,9 +14,9 @@ const ScoresImageExport = ({ reportData, filters, className = "" }) => {
             exportElement.style.position = 'absolute';
             exportElement.style.left = '-9999px';
             exportElement.style.top = '-9999px';
-            exportElement.style.width = '1200px';
+            exportElement.style.width = '1600px';
             exportElement.style.backgroundColor = 'white';
-            exportElement.style.padding = '20px';
+            exportElement.style.padding = '22px';
             exportElement.style.fontFamily = 'Arial, sans-serif';
 
             // Render bảng điểm
@@ -73,7 +73,21 @@ const ScoresImageExport = ({ reportData, filters, className = "" }) => {
 const generateScoresImageHTML = (reportData, filters) => {
     const students = reportData.ranking || [];
     const className = students.length > 0 ? students[0].class.name : 'Không xác định';
-    
+
+     // Hàm tạo title dựa trên năm học
+     const getScoreTitle = (reportData) => {
+        // Lấy năm học từ học sinh đầu tiên
+        const academicYear = students.length > 0 && students[0].academicYear 
+            ? students[0].academicYear.name 
+            : (() => {
+                // Nếu không có, tạo năm học hiện tại (năm nay - năm sau)
+                const currentYear = new Date().getFullYear();
+                return `${currentYear}-${currentYear + 1}`;
+            })();
+        
+        return `BẢNG ĐIỂM NĂM HỌC GIÁO LÝ ${academicYear}`;
+    };
+
     // Định nghĩa tất cả cột có thể có với nhóm
     const allColumns = [
         { key: 'thursdayScore', label: 'Đi Lễ T5', width: '80px', group: 'attendance' },
@@ -107,32 +121,36 @@ const generateScoresImageHTML = (reportData, filters) => {
     };
 
     return `
-        <div style="width: 1200px; padding: 40px; background: white; font-family: Arial, sans-serif; color: black;">
-            <!-- Header với logo và text giữa -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="width: 1600px; padding: 40px; background: white; font-family: Arial, sans-serif; color: black;">
+             <!-- Header với logo và text giữa -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 50px;">
+
                 <!-- Logo trái -->
-                <img src="/images/logo-left.png" alt="Logo trái" style="width: 130px; height: 130px; object-fit: contain;" />
+                <img src="/images/logo-left.png" alt="Logo trái"
+                    style="width: 140px; height: 160px; object-fit: contain;" />
 
                 <!-- Text giữa -->
                 <div style="flex: 1; text-align: center; color: black;">
-                    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #1a4f67;">
+                    <div style="font-size: 30px; font-weight: bold; margin-bottom: 10px; color: #1a4f67;">
                         Phong trào thiếu nhi thánh thể Việt Nam
                     </div>
-                    <div style="font-size: 20px; font-weight: bold; color: #1a4f67;">
-                        Giáo xứ Thiên Ân - Xử đoàn Fatima
+                    <div style="font-size: 26px; font-weight: bold; color: #1a4f67;">
+                        Giáo xứ Thiên Ân - Xứ đoàn Fatima
                     </div>
                 </div>
 
                 <!-- Logo phải -->
-                <img src="/images/logo-right.png" alt="Logo phải" style="width: 130px; height: 130px; object-fit: contain;" />
+                <img src="/images/logo-right.png" alt="Logo phải"
+                    style="width: 180px; height: 180px; object-fit: contain;" />
+
             </div>
 
             <!-- Phần tiêu đề và lớp -->
-            <div style="text-align: center; margin-bottom: 20px; color: black;">
-                <div style="font-size: 28px; font-weight: bold; text-decoration: underline; margin-top: 20px;">
-                    BẢNG ĐIỂM NĂM HỌC GIÁO LÝ 2025-2026
+            <div style="text-align: center; margin-bottom: 22px; color: black;">
+                <div style="font-size: 32px; font-weight: bold; text-decoration: underline; margin-top: 22px;">
+                    ${getScoreTitle(filters)}
                 </div>
-                <div style="font-size: 24px; margin-top: 15px; font-weight: bold;">
+                <div style="font-size: 28px; margin-top: 15px; font-weight: bold;">
                     Lớp: ${className}
                 </div>
             </div>
@@ -140,26 +158,24 @@ const generateScoresImageHTML = (reportData, filters) => {
             <!-- Bảng điểm với header 2 hàng -->
             <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
                 <!-- Header hàng 1 -->
-                <tr style="background-color: #f0f0f0;">
-                    <th rowspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 40px; color: black;">Stt</th>
-                    <th rowspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 80px; color: black;">Tên thánh</th>
-                    <th colspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 200px; color: black;">Họ và Tên</th>
-                    ${attendanceColumns.length > 0 ? `<th colspan="${attendanceColumns.length}" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; background-color: #e8f5e8; color: black;">Điểm Danh</th>` : ''}
-                    ${studyColumns.length > 0 ? `<th colspan="${studyColumns.length}" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; background-color: #e8f5e8; color: black;">Điểm Giáo Lý</th>` : ''}
-                    <th rowspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 80px; background-color: #ffe066; color: black;">Điểm Tổng</th>
-                    <th rowspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 60px; background-color: #fff2cc; color: black;">Hạng</th>
-                    <th rowspan="2" style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: 80px; background-color: #fff2cc; color: black;">Kết quả</th>
+                <tr>
+                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 40px; color: black; background-color: #e8f5e8;">Stt</th>
+                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 28px 20px 28px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; color: black; background-color: #e8f5e8;">Tên thánh</th>
+                    <th colspan="2" rowspan="2" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 200px; color: black; background-color: #e8f5e8;">Họ và Tên</th>
+                    ${attendanceColumns.length > 0 ? `<th colspan="${attendanceColumns.length}" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; background-color: #ffe699; color: black;">Điểm Danh</th>` : ''}
+                    ${studyColumns.length > 0 ? `<th colspan="${studyColumns.length}" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; background-color: #ddebf7; color: black;">Điểm Giáo Lý</th>` : ''}
+                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Điểm Tổng</th>
+                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 60px; background-color: #fffe99; color: black;">Hạng</th>
+                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Kết quả</th>
                 </tr>
                 
                 <!-- Header hàng 2 -->
-                <tr style="background-color: #f0f0f0;">
-                    <th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; color: black;">Họ</th>
-                    <th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; color: black;">Tên</th>
+                <tr>
                     ${attendanceColumns.map(col => 
-                        `<th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: ${col.width}; background-color: #e8f5e8; color: black;">${col.label}</th>`
+                        `<th style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: ${col.width}; background-color: #ffe699; color: black;">${col.label}</th>`
                     ).join('')}
                     ${studyColumns.map(col => 
-                        `<th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 18px; width: ${col.width}; background-color: #e8f5e8; color: black;">${col.label}</th>`
+                        `<th style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: ${col.width}; background-color: #ddebf7; color: black;">${col.label}</th>`
                     ).join('')}
                 </tr>
                 
@@ -173,22 +189,22 @@ const generateScoresImageHTML = (reportData, filters) => {
                         const result = getResult(student.finalAverage);
                         
                         return `
-                            <tr style="background-color: ${index % 2 === 0 ? '#f8fdf8' : 'white'};">
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${index + 1}</td>
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${student.saintName || ''}</td>
-                                <td style="border: 2px solid #000; padding: 8px; text-align: left; padding-left: 12px; font-size: 18px; color: black;">${lastAndMiddleName}</td>
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${firstName}</td>
+                            <tr>
+                                <td style="border: 2px solid #000; padding: 3px 12px 20px 12px; text-align: center; font-size: 22px; color: black;">${index + 1}</td>
+                                <td style="border: 2px solid #000; padding: 3px 28px 20px 28px; text-align: center; font-size: 22px; color: black;">${student.saintName || ''}</td>
+                                <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: 2px solid #000; border-right: none; padding: 6px 8px 20px 12px; text-align: left; font-size: 22px; color: black;">${lastAndMiddleName}</td>
+                                <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: none; border-right: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-size: 22px; color: black;">${firstName}</td>
                                 ${attendanceColumns.map(col => {
                                     const value = student[col.key] || '0.0';
-                                    return `<td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${value}</td>`;
+                                    return `<td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #ffe699;">${value}</td>`;
                                 }).join('')}
                                 ${studyColumns.map(col => {
                                     const value = student[col.key] || '0.0';
-                                    return `<td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${value}</td>`;
+                                    return `<td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #ddebf7;">${value}</td>`;
                                 }).join('')}
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black; font-weight: bold;">${student.finalAverage || '0.0'}</td>
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black;">${student.calculatedRank || ''}</td>
-                                <td style="border: 2px solid #000; padding: 8px; text-align: center; font-size: 18px; color: black; font-weight: bold;">${result}</td>
+                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${student.finalAverage || '0.0'}</td>
+                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #fffe99;">${student.calculatedRank || ''}</td>
+                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${result}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -196,7 +212,7 @@ const generateScoresImageHTML = (reportData, filters) => {
             </table>
 
             <!-- Footer thông tin -->
-            <div style="margin-top: 30px; font-size: 14px; color: black; text-align: center;">
+            <div style="margin-top: 30px; font-size: 20px; color: black; text-align: center;">
                 Báo cáo được tạo ngày: ${new Date().toLocaleDateString('vi-VN')} | 
                 Lớp: ${className} | Năm học: 2025-2026
             </div>

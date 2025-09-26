@@ -38,7 +38,7 @@ const StudentScoresPreview = ({ reportData }) => {
                         {/* Header hàng 1 */}
                         <tr className="bg-gray-50">
                             <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-12">Stt</th>
-                            <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-30">Tên thánh</th>
+                            <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-40">Tên thánh</th>
                             <th colSpan="2" rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-48">Họ và Tên</th>
                             <th colSpan="3" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699]">Điểm Danh</th>
                             <th colSpan="5" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7]">Điểm Giáo Lý</th>

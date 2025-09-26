@@ -75,6 +75,16 @@ const generateAttendanceImageHTML = (reportData, filters) => {
     const attendanceByStudentAndWeek = {};
     const allWeeks = new Map(); // Map to store week info with representative dates
 
+    // Hàm tạo title dựa trên reportType và năm học
+    const getAttendanceTitle = (filters) => {
+        if (filters.attendanceType === 'thursday') {
+            return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM';
+        } else if (filters.attendanceType === 'sunday') {
+            return 'ĐIỂM DANH THAM DỰ THÁNH LỄ CHỦ NHẬT';
+        }
+        return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM';
+    };
+
     reportData.attendanceData.forEach(record => {
         const studentId = record.student.id;
         const recordDate = new Date(record.attendanceDate);
@@ -162,17 +172,15 @@ const generateAttendanceImageHTML = (reportData, filters) => {
 
             </div>
 
-
             <!-- Phần tiêu đề và lớp -->
             <div style="text-align: center; margin-bottom: 20px; color: black;">
                 <div style="font-size: 32px; font-weight: bold; text-decoration: underline; margin-top: 20px;">
-                    ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM
+                    ${getAttendanceTitle(filters)}
                 </div>
                 <div style="font-size: 26px; margin-top: 15px; font-weight: bold;">
                     Lớp: ${className}
                 </div>
             </div>
-
 
             <!-- Bảng điểm danh -->
             <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
