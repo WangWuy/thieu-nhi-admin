@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './components/auth/LoginPage';
+import LoginPage from './pages/auth/LoginPage';
 import Layout from './components/layout/Layout';
-import Dashboard from './components/dashboard/Dashboard';
-import UserListPage from './components/users/UserListPage';
-import ClassListPage from './components/classes/ClassListPage';
-import StudentListPage from './components/students/StudentListPage';
-import AttendancePage from './components/attendance/AttendancePage';
-import ComparisonToolsPage from './components/reports/ComparisonToolsPage'; 
-import ReportsPage from './components/reports/ReportsPage';
-import SettingsPage from './components/settings/SettingsPage';
-import AlertSystemPage from './components/alerts/AlertSystemPage';
+import Dashboard from './pages/dashboard/Dashboard';
+import UserListPage from './pages/users/UserListPage';
+import ClassListPage from './pages/classes/ClassListPage';
+import StudentListPage from './pages/students/StudentListPage';
+import AttendancePage from './pages/attendance/AttendancePage';
+import ComparisonToolsPage from './pages/metrics/ComparisonToolsPage'; 
+import ReportsPage from './pages/reports/ReportsPage';
+import SettingsPage from './pages/settings/SettingsPage';
+import AlertSystemPage from './pages/alerts/AlertSystemPage';
 import { authService } from './services/authService';
 
 // Protected Route Component

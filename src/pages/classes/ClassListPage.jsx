@@ -12,9 +12,9 @@ import {
     Filter,
     Eye
 } from 'lucide-react';
-import { classService } from '../../services/classService';
+import { classService } from '../../services/classService.js';
 import { departmentService } from '../../services/departmentService.js';
-import ClassModal from './ClassModal.jsx';
+import ClassModal from '../../components/classes/ClassModal.jsx';
 
 const ClassListPage = () => {
     const navigate = useNavigate();

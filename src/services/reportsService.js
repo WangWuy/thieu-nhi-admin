@@ -7,45 +7,9 @@ export const reportsService = {
         return api.get('/reports/attendance', params);
     },
 
-    // Get grade distribution report
-    async getGradeDistribution(params = {}) {
-        return api.get('/reports/grade-distribution', params);
-    },
-
-    // Get student ranking report
-    async getStudentRanking(params = {}) {
-        return api.get('/reports/student-ranking', params);
-    },
-
-    // Get overview report
-    async getOverviewReport(params = {}) {
-        return api.get('/reports/overview', params);
-    },
-
-    // Export report - Updated for XLSX support
-    async exportReport(type, format = 'xlsx', filters = {}) {
-        const params = new URLSearchParams({
-            type,
-            format,
-            ...filters
-        }).toString();
-
-        // For file exports (xlsx, csv), trigger download
-        if (format === 'xlsx' || format === 'csv') {
-            const fileExtension = format === 'xlsx' ? 'xlsx' : 'csv';
-            const filename = this.generateReportFilename(type, fileExtension);
-
-            await api.download(`/reports/export?${params}`, filename);
-
-            return {
-                success: true,
-                message: `Đã tải xuống báo cáo ${format.toUpperCase()}`,
-                filename
-            };
-        } else {
-            // For JSON, return data
-            return api.get('/reports/export', { type, format, ...filters });
-        }
+    // Get student scores report (renamed from student ranking)
+    async getStudentScores(params = {}) {
+        return api.get('/reports/student-scores', params);
     },
 
     // Generate consistent report filenames
@@ -53,9 +17,7 @@ export const reportsService = {
         const date = new Date().toISOString().split('T')[0];
         const typeNames = {
             attendance: 'diem_danh',
-            ranking: 'xep_hang',
-            'grade-distribution': 'phan_bo_diem',
-            overview: 'tong_quan'
+            'student-scores': 'bang_diem'
         };
 
         const typeName = typeNames[type] || type;
@@ -85,14 +47,4 @@ export const reportsService = {
             };
         }
     },
-
-    // Helper method for attendance report export specifically
-    async exportAttendanceReport(filters = {}) {
-        return this.exportReport('attendance', 'xlsx', filters);
-    },
-
-    // Helper method for ranking report export
-    async exportRankingReport(filters = {}) {
-        return this.exportReport('ranking', 'xlsx', filters);
-    }
 };

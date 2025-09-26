@@ -1,4 +1,4 @@
-import { Users, BarChart3, Award, TrendingUp } from 'lucide-react';
+import { Users, BarChart3 } from 'lucide-react';
 
 const ReportTypes = ({ filters, setFilters }) => {
     const reportTypes = [
@@ -10,40 +10,24 @@ const ReportTypes = ({ filters, setFilters }) => {
             color: 'blue'
         },
         {
-            value: 'grade-distribution',
-            label: 'Phân bố điểm số',
+            value: 'student-scores',
+            label: 'Báo cáo điểm số',
             icon: BarChart3,
-            description: 'Phân tích điểm số và thành tích học tập',
+            description: 'Bảng điểm và xếp hạng thiếu nhi theo điểm số',
             color: 'green'
-        },
-        {
-            value: 'student-ranking',
-            label: 'Xếp hạng thiếu nhi',
-            icon: Award,
-            description: 'Ranking thiếu nhi theo điểm tổng kết',
-            color: 'yellow'
-        },
-        {
-            value: 'overview',
-            label: 'Báo cáo tổng quan',
-            icon: TrendingUp,
-            description: 'Tổng quan hoạt động và thống kê chung',
-            color: 'purple'
         }
     ];
 
     const getColorClasses = (color) => {
         const colors = {
             blue: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100',
-            green: 'bg-green-50 border-green-200 text-green-800 hover:bg-green-100',
-            yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100',
-            purple: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100'
+            green: 'bg-green-50 border-green-200 text-green-800 hover:bg-green-100'
         };
         return colors[color] || colors.blue;
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {reportTypes.map((type) => (
                 <div
                     key={type.value}

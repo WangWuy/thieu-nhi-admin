@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp } from 'lucide-react';
-import WeeklyAttendanceChart from './WeeklyAttendanceChart';
-import DepartmentAttendanceChart from './DepartmentAttendanceChart';
+import WeeklyAttendanceChart from '../../components/metrics/WeeklyAttendanceChart';
+import DepartmentAttendanceChart from '../../components/metrics/DepartmentAttendanceChart';
 import { getMostRecentAttendanceDate } from '../../utils/validAttendanceDatesUtils';
 
 const ComparisonToolsPage = () => {

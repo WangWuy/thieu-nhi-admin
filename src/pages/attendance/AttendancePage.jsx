@@ -13,7 +13,7 @@ import { attendanceService } from '../../services/attendanceService';
 import { classService } from '../../services/classService';
 import { ATTENDANCE_TYPES } from '../../utils/constants';
 import { getAttendanceTypeName } from '../../utils/helpers';
-import ImportAttendanceModal from './ImportAttendanceModal';
+import ImportAttendanceModal from '../../components/attendance/ImportAttendanceModal';
 
 const AttendancePage = () => {
     const [classes, setClasses] = useState([]);

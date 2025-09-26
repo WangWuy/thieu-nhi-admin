@@ -3,9 +3,7 @@ import {
     Plus,
     Search,
     Edit,
-    Trash2,
     Key,
-    Filter,
     ChevronLeft,
     ChevronRight,
     UserX,
@@ -16,8 +14,8 @@ import { classService } from '../../services/classService';
 import { departmentService } from '../../services/departmentService';
 import { USER_ROLES } from '../../utils/constants';
 import { getRoleName } from '../../utils/helpers';
-import UserModal from './UserModal';
-import UserImportModal from './UserImportModal';
+import UserModal from '../../components/users/UserModal';
+import UserImportModal from '../../components/users/UserImportModal';
 
 const UserListPage = () => {
     const [users, setUsers] = useState([]);

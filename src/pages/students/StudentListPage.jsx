@@ -4,8 +4,8 @@ import { Plus, Edit, Trash2, GraduationCap, Upload, ChevronLeft, ChevronRight, S
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import { authService } from '../../services/authService';
-import StudentForm from './StudentForm';
-import ExcelImportModal from '../import/ExcelImportModal';
+import StudentForm from '../../components/students/StudentForm';
+import ExcelImportModal from '../../components/import/ExcelImportModal';
 
 const StudentListPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();

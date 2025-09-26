@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FileText, RefreshCw, AlertCircle } from 'lucide-react';
 import { reportsService } from '../../services/reportsService';
-import ReportFilters from './components/ReportFilters';
-import ReportTypes from './components/ReportTypes';
-import ReportPreview from './components/ReportPreview';
-import ErrorAlert from './components/ErrorAlert';
+import ReportFilters from '../../components/reports/ReportFilters';
+import ReportPreview from '../../components/reports/ReportPreview';
+import ErrorAlert from '../../components/reports/ErrorAlert';
 
 const ReportsPage = () => {
     const [loading, setLoading] = useState(false);
-    const [exportLoading, setExportLoading] = useState('');
     const [error, setError] = useState('');
     const [reportData, setReportData] = useState(null);
     const [availableFilters, setAvailableFilters] = useState({
@@ -38,7 +36,8 @@ const ReportsPage = () => {
         classId: '',
         departmentId: '',
         academicYearId: '',
-        attendanceType: 'all'
+        attendanceType: 'all',
+        selectedScoreColumns: [] // Cho báo cáo điểm số
     });
 
     useEffect(() => {
@@ -56,7 +55,7 @@ const ReportsPage = () => {
 
     const handleGenerateReport = async () => {
         if (!filters.classId) {
-            setError('Vui lòng chọn lớp để tạo báo cáo điểm danh');
+            setError('Vui lòng chọn lớp để tạo báo cáo');
             return;
         }
 
@@ -70,7 +69,8 @@ const ReportsPage = () => {
                 endDate: filters.endDate,
                 ...(filters.classId && { classId: filters.classId }),
                 ...(filters.departmentId && { departmentId: filters.departmentId }),
-                ...(filters.academicYearId && { academicYearId: filters.academicYearId })
+                ...(filters.academicYearId && { academicYearId: filters.academicYearId }),
+                ...(filters.attendanceType !== 'all' && { attendanceType: filters.attendanceType })
             };
 
             let data;
@@ -78,14 +78,8 @@ const ReportsPage = () => {
                 case 'attendance':
                     data = await reportsService.getAttendanceReport(params);
                     break;
-                case 'grade-distribution':
-                    data = await reportsService.getGradeDistribution(params);
-                    break;
-                case 'student-ranking':
-                    data = await reportsService.getStudentRanking({ ...params, limit: 100 });
-                    break;
-                case 'overview':
-                    data = await reportsService.getOverviewReport(params);
+                case 'student-scores':
+                    data = await reportsService.getStudentScores({ ...params, limit: 100 });
                     break;
                 default:
                     throw new Error('Loại báo cáo không hợp lệ');
@@ -96,31 +90,6 @@ const ReportsPage = () => {
             setError(err.message || 'Không thể tạo báo cáo');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleExportReport = async (format = 'xlsx') => {
-        if (!filters.classId) {
-            setError('Vui lòng chọn lớp để tạo báo cáo điểm danh');
-            return;
-        }
-
-        try {
-            setExportLoading(format);
-
-            const exportFilters = {
-                startDate: filters.startDate,
-                endDate: filters.endDate,
-                classId: filters.classId,
-                ...(filters.attendanceType !== 'all' && { attendanceType: filters.attendanceType })
-            };
-
-            await reportsService.exportReport(filters.reportType, format, exportFilters);
-
-        } catch (err) {
-            setError(err.message || 'Không thể xuất báo cáo');
-        } finally {
-            setExportLoading('');
         }
     };
 
@@ -155,16 +124,8 @@ const ReportsPage = () => {
                 <ReportPreview
                     reportData={reportData}
                     filters={filters}
-                    onExport={handleExportReport}
-                    exportLoading={exportLoading}
                 />
             )}
-
-            {/* Report Types */}
-            <ReportTypes
-                filters={filters}
-                setFilters={setFilters}
-            />
         </div>
     );
 };

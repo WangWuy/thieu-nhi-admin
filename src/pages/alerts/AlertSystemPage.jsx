@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { reportsService } from '../../services/reportsService';
 import { dashboardService } from '../../services/dashboardService';
-import AlertRulesManager from './AlertRulesManager';
+import AlertRulesManager from '../../components/alerts/AlertRulesManager';
 
 const AlertSystemPage = () => {
     const [loading, setLoading] = useState(false);
