@@ -75,7 +75,7 @@ const generateScoresImageHTML = (reportData, filters) => {
     const className = students.length > 0 ? students[0].class.name : 'Không xác định';
 
      // Hàm tạo title dựa trên năm học
-     const getScoreTitle = (reportData) => {
+     const getScoreTitle = () => {
         // Lấy năm học từ học sinh đầu tiên
         const academicYear = students.length > 0 && students[0].academicYear 
             ? students[0].academicYear.name 
@@ -148,7 +148,7 @@ const generateScoresImageHTML = (reportData, filters) => {
             <!-- Phần tiêu đề và lớp -->
             <div style="text-align: center; margin-bottom: 22px; color: black;">
                 <div style="font-size: 32px; font-weight: bold; text-decoration: underline; margin-top: 22px;">
-                    ${getScoreTitle(filters)}
+                    ${getScoreTitle()}
                 </div>
                 <div style="font-size: 28px; margin-top: 15px; font-weight: bold;">
                     Lớp: ${className}

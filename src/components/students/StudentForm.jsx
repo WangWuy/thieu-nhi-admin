@@ -382,7 +382,7 @@ const StudentForm = ({ student = null, isOpen, onClose, onSave, classes = [], de
                             <div className="text-sm text-yellow-800">
                                 <strong>Lưu ý:</strong> Điểm điểm danh và điểm tổng sẽ được tính tự động dựa trên:
                                 <ul className="list-disc list-inside mt-1 text-xs">
-                                    <li>Điểm điểm danh: Từ việc điểm danh thứ 5 và Chủ nhật</li>
+                                    <li>Điểm điểm danh: Từ việc điểm danh thứ 5 và Chúa nhật</li>
                                     <li>Điểm tổng: Điểm giáo lý x 0.6 + Điểm điểm danh x 0.4</li>
                                 </ul>
                             </div>

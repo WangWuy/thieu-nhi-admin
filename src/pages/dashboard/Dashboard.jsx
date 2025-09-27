@@ -334,7 +334,7 @@ const Dashboard = ({ user }) => {
                             </div>
                         </div>
                         <div className="border border-red-100 rounded-lg p-4">
-                            <h4 className="font-medium text-red-800 mb-2">Chủ nhật</h4>
+                            <h4 className="font-medium text-red-800 mb-2">Chúa nhật</h4>
                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-green-600">Có mặt:</span>

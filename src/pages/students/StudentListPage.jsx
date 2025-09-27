@@ -519,11 +519,13 @@ const StudentListPage = () => {
                             <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
                                 <div className="flex flex-col items-center">
                                     <span>Điểm danh T5</span>
+                                    <span className="text-[10px] font-normal">(Buổi)</span>
                                 </div>
                             </th>
                             <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
                                 <div className="flex flex-col items-center">
                                     <span>Điểm danh CN</span>
+                                    <span className="text-[10px] font-normal">(Buổi)</span>
                                 </div>
                             </th>
                             <th className="px-2 py-3 text-center text-xs font-medium text-green-600 uppercase">
@@ -597,7 +599,6 @@ const StudentListPage = () => {
                                         </div>
                                     </td>
 
-                                    {/* Score columns */}
                                     {/* Score columns - Individual cells */}
                                     <td className="px-2 py-4 text-center border-l border-blue-100">
                                         <ScoreEditCell
@@ -638,12 +639,18 @@ const StudentListPage = () => {
                                     </td>
                                     <td className="px-2 py-4 text-center bg-green-50">
                                         <div className="text-sm font-medium text-green-700">
-                                            {student.thursdayAttendanceCount || 0}
+                                            {student.thursdayScore || 0}
+                                        </div>
+                                        <div className="text-xs text-green-600 mt-1">
+                                            ({student.thursdayAttendanceCount || 0})
                                         </div>
                                     </td>
                                     <td className="px-2 py-4 text-center bg-green-50">
                                         <div className="text-sm font-medium text-green-700">
-                                            {student.sundayAttendanceCount || 0}
+                                            {student.sundayScore || 0}
+                                        </div>
+                                        <div className="text-xs text-green-600 mt-1">
+                                            ({student.sundayAttendanceCount || 0})
                                         </div>
                                     </td>
                                     <td className="px-2 py-4 text-center bg-green-50">

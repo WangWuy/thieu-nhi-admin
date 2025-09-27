@@ -180,7 +180,7 @@ const DepartmentAttendanceChart = ({
                             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="thursday">Thứ 5</option>
-                            <option value="sunday">Chủ nhật</option>
+                            <option value="sunday">Chúa nhật</option>
                         </select>
 
                         {/* Date selector - only valid dates */}

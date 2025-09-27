@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { Camera, RefreshCw } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import {
+    groupAttendanceByStudentAndWeek,
+    mergeAndSortStudents,
+    getSortedColumns,
+    parseStudentName
+} from '../../utils/attendancePreviewUtils';
 
 const AttendanceImageExport = ({ reportData, filters, className = "" }) => {
     const [exporting, setExporting] = useState(false);
@@ -14,13 +20,13 @@ const AttendanceImageExport = ({ reportData, filters, className = "" }) => {
             exportElement.style.position = 'absolute';
             exportElement.style.left = '-9999px';
             exportElement.style.top = '-9999px';
-            exportElement.style.width = '1200px';
+            exportElement.style.width = '1300px';
             exportElement.style.backgroundColor = 'white';
             exportElement.style.padding = '20px';
             exportElement.style.fontFamily = 'Arial, sans-serif';
 
             // Render báo cáo attendance theo format mẫu
-            if (filters.reportType === 'attendance' && reportData.attendanceData) {
+            if (filters.reportType === 'attendance') {
                 exportElement.innerHTML = generateAttendanceImageHTML(reportData, filters);
             } else {
                 throw new Error('Chỉ hỗ trợ xuất ảnh cho báo cáo điểm danh');
@@ -71,9 +77,18 @@ const AttendanceImageExport = ({ reportData, filters, className = "" }) => {
 
 // Hàm tạo HTML cho báo cáo điểm danh
 const generateAttendanceImageHTML = (reportData, filters) => {
-    // Group attendance data by student and week
-    const attendanceByStudentAndWeek = {};
-    const allWeeks = new Map(); // Map to store week info with representative dates
+    // Use utils to process attendance data
+    const attendanceData = reportData.attendanceData || [];
+    const { attendanceByStudentAndWeek, allWeeks } = groupAttendanceByStudentAndWeek(attendanceData);
+    
+    // Merge and sort students
+    const sortedStudents = mergeAndSortStudents(
+        attendanceByStudentAndWeek, 
+        reportData.studentsWithoutAttendanceList
+    );
+
+    // Get sorted columns or default columns if no data
+    const sortedColumns = getSortedColumns(allWeeks, reportData.filters);
 
     // Hàm tạo title dựa trên reportType và năm học
     const getAttendanceTitle = (filters) => {
@@ -85,70 +100,19 @@ const generateAttendanceImageHTML = (reportData, filters) => {
         return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM';
     };
 
-    reportData.attendanceData.forEach(record => {
-        const studentId = record.student.id;
-        const recordDate = new Date(record.attendanceDate);
-
-        // Calculate week start (Monday)
-        const day = recordDate.getDay();
-        const diff = recordDate.getDate() - day + (day === 0 ? -6 : 1);
-        const weekStart = new Date(recordDate);
-        weekStart.setDate(diff);
-        weekStart.setHours(0, 0, 0, 0);
-
-        const weekKey = weekStart.toISOString().split('T')[0];
-
-        // Determine column type and representative date
-        let columnType, representativeDate;
-
-        if (record.attendanceType === 'sunday') {
-            // Chủ nhật: hiển thị ngày thực tế
-            columnType = 'sunday';
-            representativeDate = recordDate.toISOString().split('T')[0];
-        } else {
-            // Thứ 2-7: gom thành thứ 5
-            columnType = 'thursday';
-            // Tính ngày thứ 5 của tuần (Monday + 4 days)
-            const thursday = new Date(weekStart);
-            thursday.setDate(weekStart.getDate() + 4);
-            representativeDate = thursday.toISOString().split('T')[0];
+    // Get class name safely
+    let className = 'Không xác định';
+    if (sortedStudents.length > 0) {
+        const firstStudent = sortedStudents[0].student;
+        if (firstStudent.class?.name) {
+            className = firstStudent.class.name;
+        } else if (firstStudent.className) {
+            className = firstStudent.className;
         }
-
-        const columnKey = `${columnType}_${representativeDate}`;
-
-        // Store week info
-        allWeeks.set(columnKey, {
-            type: columnType,
-            date: representativeDate,
-            weekStart: weekKey
-        });
-
-        // Group student attendance
-        if (!attendanceByStudentAndWeek[studentId]) {
-            attendanceByStudentAndWeek[studentId] = {
-                student: record.student,
-                attendance: {}
-            };
-        }
-
-        // For weekdays, if any day in the week has attendance, mark as present
-        if (record.isPresent) {
-            attendanceByStudentAndWeek[studentId].attendance[columnKey] = true;
-        }
-    });
-
-    // Sort dates và chỉ lấy 3 cột gần nhất
-    const sortedColumns = Array.from(allWeeks.entries())
-        .sort(([, a], [, b]) => new Date(a.date) - new Date(b.date))
-        .slice(-3);
-
-    const students = Object.values(attendanceByStudentAndWeek);
-
-    // Get class name
-    const className = students.length > 0 ? students[0].student.class.name : 'Không xác định';
+    }
 
     return `
-        <div style="width: 1200px; padding: 40px; background: white; font-family: Arial, sans-serif; color: black;">
+        <div style="width: 1300px; padding: 40px; background: white; font-family: Arial, sans-serif; color: black;">
             <!-- Header với logo và text giữa -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 30px;">
 
@@ -193,17 +157,14 @@ const generateAttendanceImageHTML = (reportData, filters) => {
         const dateObj = new Date(columnInfo.date);
         const day = String(dateObj.getDate()).padStart(2, '0');
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const bgColor = '#e8f5e8'; // Màu nền xanh nhạt cho header
+        const bgColor = '#e8f5e8';
         return `<th style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-weight: bold; font-size: 26px; width: 70px; background-color: ${bgColor}; color: black;">${day}/${month}</th>`;
     }).join('')}
                     </tr>
                 </thead>
                 <tbody>
-                    ${students.map((studentData, index) => {
-        const fullName = studentData.student.fullName || '';
-        const nameParts = fullName.trim().split(' ');
-        const firstName = nameParts[nameParts.length - 1] || '';
-        const lastAndMiddleName = nameParts.slice(0, -1).join(' ') || '';
+                    ${sortedStudents.map((studentData, index) => {
+        const { firstName, lastAndMiddleName } = parseStudentName(studentData.student.fullName);
 
         return `
                                 <tr>
@@ -213,7 +174,7 @@ const generateAttendanceImageHTML = (reportData, filters) => {
                                     <td style="border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: none; border-right: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 26px; color: black; width: 100px;">${firstName}</td>
                                     ${sortedColumns.map(([columnKey, columnInfo], colIndex) => {
             const isPresent = studentData.attendance[columnKey];
-            const bgColor = isPresent ? '#e8f5e8' : '#fff'; // Màu nền khác nhau nếu có mặt hay không
+            const bgColor = isPresent ? '#e8f5e8' : '#fff';
             return `<td style="border: 2px solid #000; padding: 6px 8px 24px 8px; text-align: center; font-size: 20px; font-weight: bold; background-color: ${bgColor}; color: black;">${isPresent ? 'X' : ''}</td>`;
         }).join('')}
                                 </tr>

@@ -12,13 +12,6 @@ const ComparisonToolsPage = () => {
         getMostRecentAttendanceDate('sunday')
     );
 
-    const departments = [
-        { value: 'CHIEN', label: 'Chiên con' },
-        { value: 'AU', label: 'Ấu nhi' },
-        { value: 'THIEU', label: 'Thiếu nhi' },
-        { value: 'NGHIA', label: 'Nghĩa sĩ' }
-    ];
-
     const handleAttendanceTypeChange = (newType) => {
         setSelectedAttendanceType(newType);
         // Auto-select most recent valid date for the new type

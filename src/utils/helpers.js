@@ -21,3 +21,16 @@ export const getDepartmentName = (name) => {
 export const getAttendanceTypeName = (type) => {
     return ATTENDANCE_TYPE_NAMES[type] || type;
 };
+
+// Helper function to sort students by Vietnamese last name
+export const sortStudentsByLastName = (students) => {
+    return students.sort((a, b) => {
+        const aLastName = a.fullName.split(' ').pop();
+        const bLastName = b.fullName.split(' ').pop();
+        return aLastName.localeCompare(bLastName, 'vi', {
+            sensitivity: 'base',
+            numeric: true,
+            ignorePunctuation: true
+        });
+    });
+};

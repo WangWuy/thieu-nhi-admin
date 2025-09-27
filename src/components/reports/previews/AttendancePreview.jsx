@@ -1,76 +1,31 @@
+import { 
+    groupAttendanceByStudentAndWeek,
+    mergeAndSortStudents,
+    getSortedColumns,
+    getClassName,
+    parseStudentName
+} from '../../../utils/attendancePreviewUtils';
+
 const AttendancePreview = ({ reportData }) => {
-    if (!reportData.attendanceData || reportData.attendanceData.length === 0) {
-        return (
-            <div className="text-center py-8">
-                <div className="text-gray-500 text-lg mb-2">Không có dữ liệu điểm danh</div>
-                <div className="text-gray-400 text-sm">
-                    Không tìm thấy dữ liệu điểm danh trong khoảng thời gian đã chọn
-                </div>
-            </div>
-        );
-    }
+    // Group attendance data by student and week using utils
+    const { attendanceByStudentAndWeek, allWeeks } = groupAttendanceByStudentAndWeek(
+        reportData.attendanceData || []
+    );
 
-    // Group attendance data by student and week (similar to image export logic)
-    const attendanceByStudentAndWeek = {};
-    const allWeeks = new Map();
+    // Merge and sort all students using utils
+    const sortedStudents = mergeAndSortStudents(
+        attendanceByStudentAndWeek,
+        reportData.studentsWithoutAttendanceList || []
+    );
 
-    reportData.attendanceData.forEach(record => {
-        const studentId = record.student.id;
-        const recordDate = new Date(record.attendanceDate);
+    // Get sorted columns (last 3) or default columns using utils
+    const sortedColumns = getSortedColumns(allWeeks, reportData.filters);
 
-        // Calculate week start (Monday)
-        const day = recordDate.getDay();
-        const diff = recordDate.getDate() - day + (day === 0 ? -6 : 1);
-        const weekStart = new Date(recordDate);
-        weekStart.setDate(diff);
-        weekStart.setHours(0, 0, 0, 0);
+    // Display first 50 students
+    const displayStudents = sortedStudents.slice(0, 50);
 
-        const weekKey = weekStart.toISOString().split('T')[0];
-
-        // Determine column type and representative date
-        let columnType, representativeDate;
-
-        if (record.attendanceType === 'sunday') {
-            columnType = 'sunday';
-            representativeDate = recordDate.toISOString().split('T')[0];
-        } else {
-            columnType = 'thursday';
-            const thursday = new Date(weekStart);
-            thursday.setDate(weekStart.getDate() + 4);
-            representativeDate = thursday.toISOString().split('T')[0];
-        }
-
-        const columnKey = `${columnType}_${representativeDate}`;
-
-        // Store week info
-        allWeeks.set(columnKey, {
-            type: columnType,
-            date: representativeDate,
-            weekStart: weekKey
-        });
-
-        // Group student attendance
-        if (!attendanceByStudentAndWeek[studentId]) {
-            attendanceByStudentAndWeek[studentId] = {
-                student: record.student,
-                attendance: {}
-            };
-        }
-
-        if (record.isPresent) {
-            attendanceByStudentAndWeek[studentId].attendance[columnKey] = true;
-        }
-    });
-
-    // Sort dates and take last 3 columns
-    const sortedColumns = Array.from(allWeeks.entries())
-        .sort(([, a], [, b]) => new Date(a.date) - new Date(b.date))
-        .slice(-3);
-
-    const students = Object.values(attendanceByStudentAndWeek).slice(0, 50);
-
-    // Get class name
-    const className = students.length > 0 ? students[0].student.class.name : 'Không xác định';
+    // Get class name using utils
+    const className = getClassName(displayStudents, reportData.studentsWithoutAttendanceList);
 
     return (
         <div className="space-y-4">
@@ -88,11 +43,11 @@ const AttendancePreview = ({ reportData }) => {
                     </div>
                     <div className="text-sm text-gray-600">Có mặt CN</div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
-                        {Object.keys(reportData.attendanceByDate || {}).length}
+                <div className="bg-red-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                        {reportData.studentsWithoutAttendance || 0}
                     </div>
-                    <div className="text-sm text-gray-600">Số ngày có điểm danh</div>
+                    <div className="text-sm text-gray-600">Học sinh chưa điểm danh</div>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-yellow-600">
@@ -107,7 +62,7 @@ const AttendancePreview = ({ reportData }) => {
                 <h3 className="text-lg font-semibold">Lớp: {className}</h3>
             </div>
 
-            {/* Bảng điểm danh theo format như xuất ảnh */}
+            {/* Bảng điểm danh */}
             <div className="border border-gray-300 rounded-lg overflow-hidden">
                 <table className="min-w-full border-collapse">
                     <thead>
@@ -128,11 +83,8 @@ const AttendancePreview = ({ reportData }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map((studentData, index) => {
-                            const fullName = studentData.student.fullName || '';
-                            const nameParts = fullName.trim().split(' ');
-                            const firstName = nameParts[nameParts.length - 1] || '';
-                            const lastAndMiddleName = nameParts.slice(0, -1).join(' ') || '';
+                        {displayStudents.map((studentData, index) => {
+                            const { firstName, lastAndMiddleName } = parseStudentName(studentData.student.fullName);
 
                             return (
                                 <tr key={studentData.student.id}>
@@ -142,7 +94,7 @@ const AttendancePreview = ({ reportData }) => {
                                     <td className="border border-gray-300 px-4 py-3 text-center text-sm text-gray-900 border-l-0">{firstName}</td>
                                     {sortedColumns.map(([columnKey, columnInfo]) => {
                                         const isPresent = studentData.attendance[columnKey];
-                                        const bgColor = isPresent ? '#e8f5e8' : '#fff'; // Màu nền khác nhau nếu có mặt hay không
+                                        const bgColor = isPresent ? '#e8f5e8' : '#fff';
                                         return (
                                             <td
                                                 key={columnKey}
@@ -151,7 +103,6 @@ const AttendancePreview = ({ reportData }) => {
                                             >
                                                 {isPresent ? 'X' : ''}
                                             </td>
-
                                         );
                                     })}
                                 </tr>
@@ -161,9 +112,9 @@ const AttendancePreview = ({ reportData }) => {
                 </table>
             </div>
 
-            {reportData.attendanceData.length > 50 && (
+            {sortedStudents.length > 50 && (
                 <div className="text-center py-4 text-gray-500 text-sm">
-                    Hiển thị 50/{reportData.attendanceData.length} học sinh đầu tiên
+                    Hiển thị 50/{sortedStudents.length} học sinh đầu tiên
                     <br />
                     <span className="text-xs">Xuất Excel để xem đầy đủ</span>
                 </div>

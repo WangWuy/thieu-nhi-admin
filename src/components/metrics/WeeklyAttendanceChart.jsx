@@ -112,12 +112,12 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
-                        {attendanceType === 'sunday' ? 'Biểu đồ Chủ nhật' : 'Biểu đồ Thứ 5'}
+                        {attendanceType === 'sunday' ? 'Biểu đồ Chúa nhật' : 'Biểu đồ Thứ 5'}
                     </h3>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            {data?.summary?.attendanceType || (attendanceType === 'sunday' ? 'Chủ nhật' : 'Thứ 5')}
+                            {data?.summary?.attendanceType || (attendanceType === 'sunday' ? 'Chúa nhật' : 'Thứ 5')}
                         </div>
                         <button
                             onClick={fetchWeeklyTrend}
@@ -179,23 +179,62 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
             {/* Summary stats */}
             {data && (
                 <div className="border-t border-gray-200 p-4 bg-gray-50">
+                    {/* Tổng học sinh tuần này */}
+                    <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">Tổng học sinh tuần này:</h4>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                            {data.totalTrend?.map((item, index) => (
+                                <div key={index} className="text-center">
+                                    <div className="font-bold text-gray-700 text-lg">
+                                        {item.total}
+                                    </div>
+                                    <div className="text-gray-600 text-xs">
+                                        {item.week}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Thống kê từng lớp */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         {data.chartData?.datasets?.map((dataset) => {
-                            const total = dataset.data.reduce((sum, val) => sum + val, 0);
-                            const avg = (total / dataset.data.length).toFixed(0);
-                            const trend = dataset.data[dataset.data.length - 1] > dataset.data[0] ? 'up' : 'down';
+                            // Tính toán dữ liệu
+                            const firstWeek = dataset.data[0] || 0;
+                            const lastWeek = dataset.data[dataset.data.length - 1] || 0;
+                            const totalStudents = dataset.data.reduce((sum, val) => sum + val, 0);
+                            const avgStudents = Math.round(totalStudents / dataset.data.length);
+                            const change = lastWeek - firstWeek;
+                            const isIncreasing = change > 0;
+                            const isDecreasing = change < 0;
 
                             return (
                                 <div key={dataset.name} className="text-center">
+                                    {/* Hiển thị số trung bình và xu hướng */}
                                     <div className="font-medium text-gray-900 flex items-center justify-center gap-1">
-                                        {avg}
-                                        {trend === 'up' ? (
+                                        <span>{avgStudents}</span>
+                                        {isIncreasing && (
                                             <TrendingUp className="w-3 h-3 text-green-600" />
-                                        ) : (
+                                        )}
+                                        {isDecreasing && (
                                             <TrendingUp className="w-3 h-3 text-red-600 rotate-180" />
                                         )}
                                     </div>
-                                    <div className="text-gray-600">{dataset.name} (TB)</div>
+
+                                    {/* Tên lớp/dataset */}
+                                    <div className="text-gray-600">{dataset.name}</div>
+
+                                    {/* Hiển thị số thay đổi */}
+                                    <div className="text-xs mt-1">
+                                        {change !== 0 && (
+                                            <span className={isIncreasing ? 'text-green-600' : 'text-red-600'}>
+                                                {isIncreasing ? '+' : ''}{change} HS
+                                            </span>
+                                        )}
+                                        {change === 0 && (
+                                            <span className="text-gray-500">Không đổi</span>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}

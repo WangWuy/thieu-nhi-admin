@@ -29,7 +29,7 @@ const AttendancePage = () => {
     // Helper functions để tính toán ngày và buổi
     const getDateLimits = () => {
         const today = new Date();
-        const currentDay = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+        const currentDay = today.getDay(); // 0 = Chúa nhật, 1 = Thứ 2, ..., 6 = Thứ 7
 
         return {
             maxDate: today.toISOString().split('T')[0], // Chỉ không cho chọn tương lai

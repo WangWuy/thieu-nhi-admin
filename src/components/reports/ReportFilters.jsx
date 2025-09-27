@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart3, RefreshCw } from 'lucide-react';
+import { getDefaultWeekValue, formatWeekRange, handleWeekChange } from '../../utils/weekUtils';
 
 const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, loading }) => {
+    const [weekRange, setWeekRange] = useState('');
+
     const reportTypes = [
         { value: 'attendance', label: 'Báo cáo điểm danh' },
         { value: 'student-scores', label: 'Báo cáo điểm số' }
     ];
 
-    // Các cột điểm số có thể chọn
     const scoreColumns = [
         { value: 'attendanceAverage', label: 'Đi Lễ T5' },
         { value: 'studyAverage', label: 'Học GL' },
@@ -19,16 +21,31 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
         { value: 'finalAverage', label: 'Điểm Tổng' }
     ];
 
+    // Initialize default week value on component mount
+    useEffect(() => {
+        if (!filters.weekValue && !filters.startDate && !filters.endDate) {
+            const defaultWeekValue = getDefaultWeekValue();
+            handleWeekChange(defaultWeekValue, setFilters, setWeekRange);
+        } else if (filters.weekValue) {
+            setWeekRange(formatWeekRange(filters.weekValue));
+        }
+    }, []);
+
+    // Update week range when weekValue changes
+    useEffect(() => {
+        if (filters.weekValue) {
+            setWeekRange(formatWeekRange(filters.weekValue));
+        }
+    }, [filters.weekValue]);
+
     const handleScoreColumnChange = (columnValue) => {
         const currentColumns = filters.selectedScoreColumns || [];
         if (currentColumns.includes(columnValue)) {
-            // Bỏ chọn
             setFilters(prev => ({
                 ...prev,
                 selectedScoreColumns: currentColumns.filter(col => col !== columnValue)
             }));
         } else {
-            // Thêm chọn
             setFilters(prev => ({
                 ...prev,
                 selectedScoreColumns: [...currentColumns, columnValue]
@@ -38,30 +55,24 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
 
     return (
         <div className="space-y-4">
-            {/* Date and Type Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Week Selection and Report Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Từ ngày
+                        Chọn tuần <span className="text-red-500">*</span>
                     </label>
                     <input
-                        type="date"
-                        value={filters.startDate}
-                        onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                        type="week"
+                        value={filters.weekValue || ''}
+                        onChange={(e) => handleWeekChange(e.target.value, setFilters, setWeekRange)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        required
                     />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Đến ngày
-                    </label>
-                    <input
-                        type="date"
-                        value={filters.endDate}
-                        onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    {weekRange && (
+                        <div className="mt-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded">
+                            📅 {weekRange}
+                        </div>
+                    )}
                 </div>
 
                 <div>
@@ -155,7 +166,7 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
                 </div>
             </div>
 
-            {/* Score Columns Filter - chỉ hiện khi chọn báo cáo điểm số */}
+            {/* Score Columns Filter */}
             {filters.reportType === 'student-scores' && (
                 <div className="border-t pt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -179,7 +190,7 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
 
             <button
                 onClick={onGenerate}
-                disabled={loading}
+                disabled={loading || !filters.weekValue || !filters.classId}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg flex items-center gap-2"
             >
                 {loading ? (
