@@ -17,7 +17,7 @@ export const ATTENDANCE_TYPES = {
 
 export const ATTENDANCE_TYPE_NAMES = {
     [ATTENDANCE_TYPES.THURSDAY]: 'Thứ 5',
-    [ATTENDANCE_TYPES.SUNDAY]: 'Chủ nhật'
+    [ATTENDANCE_TYPES.SUNDAY]: 'Chúa nhật'
 };
 
 export const DEPARTMENTS = {

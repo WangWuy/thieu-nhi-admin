@@ -161,7 +161,7 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
                     >
                         <option value="all">Tất cả</option>
                         <option value="thursday">Chỉ Thứ 5</option>
-                        <option value="sunday">Chỉ Chủ nhật</option>
+                        <option value="sunday">Chỉ Chúa nhật</option>
                     </select>
                 </div>
             </div>

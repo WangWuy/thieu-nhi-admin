@@ -11,7 +11,7 @@ import { useState } from 'react';
  */
 export const getDateLimits = () => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+    const currentDay = today.getDay(); // 0 = Chúa nhật, 1 = Thứ 2, ..., 6 = Thứ 7
 
     return {
         maxDate: today.toISOString().split('T')[0], // Không cho chọn tương lai
@@ -52,9 +52,9 @@ export const validateDateAttendanceType = (date, attendanceType) => {
 
     let message = '';
     if (dayOfWeek === 0 && attendanceType === ATTENDANCE_TYPES.THURSDAY) {
-        message = 'Ngày được chọn là Chủ nhật, buổi điểm danh nên là Chủ nhật';
+        message = 'Ngày được chọn là Chúa nhật, buổi điểm danh nên là Chúa nhật';
     } else if (dayOfWeek !== 0 && attendanceType === ATTENDANCE_TYPES.SUNDAY) {
-        message = 'Ngày được chọn không phải Chủ nhật, buổi điểm danh nên là Thứ 5';
+        message = 'Ngày được chọn không phải Chúa nhật, buổi điểm danh nên là Thứ 5';
     }
 
     return {

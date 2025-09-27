@@ -95,9 +95,9 @@ const generateAttendanceImageHTML = (reportData, filters) => {
         if (filters.attendanceType === 'thursday') {
             return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM';
         } else if (filters.attendanceType === 'sunday') {
-            return 'ĐIỂM DANH THAM DỰ THÁNH LỄ CHỦ NHẬT';
+            return 'ĐIỂM DANH THAM DỰ THÁNH LỄ CHÚA NHẬT';
         }
-        return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM';
+        return 'ĐIỂM DANH THAM DỰ THÁNH LỄ THỨ NĂM VÀ CHÚA NHẬT';
     };
 
     // Get class name safely
