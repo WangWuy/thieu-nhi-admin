@@ -158,7 +158,7 @@ function App() {
         <Route
           path="/reports"
           element={
-            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+            <ProtectedRoute user={user}>
               <AppLayout user={user} onLogout={handleLogout}>
                 <ReportsPage />
               </AppLayout>

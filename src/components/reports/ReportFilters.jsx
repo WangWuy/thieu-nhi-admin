@@ -4,6 +4,7 @@ import { getDefaultWeekValue, formatWeekRange, handleWeekChange } from '../../ut
 
 const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, loading }) => {
     const [weekRange, setWeekRange] = useState('');
+    const [dateRangeMode, setDateRangeMode] = useState('week'); // 'week' or 'custom'
 
     const reportTypes = [
         { value: 'attendance', label: 'Báo cáo điểm danh' },
@@ -28,6 +29,9 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
             handleWeekChange(defaultWeekValue, setFilters, setWeekRange);
         } else if (filters.weekValue) {
             setWeekRange(formatWeekRange(filters.weekValue));
+            setDateRangeMode('week');
+        } else if (filters.startDate || filters.endDate) {
+            setDateRangeMode('custom');
         }
     }, []);
 
@@ -37,6 +41,42 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
             setWeekRange(formatWeekRange(filters.weekValue));
         }
     }, [filters.weekValue]);
+
+    // Handle date range mode change
+    const handleDateRangeModeChange = (mode) => {
+        setDateRangeMode(mode);
+        
+        if (mode === 'week') {
+            // Switch to week mode - clear custom dates
+            setFilters(prev => ({
+                ...prev,
+                startDate: '',
+                endDate: ''
+            }));
+            
+            // Set default week if no week selected
+            if (!filters.weekValue) {
+                const defaultWeekValue = getDefaultWeekValue();
+                handleWeekChange(defaultWeekValue, setFilters, setWeekRange);
+            }
+        } else {
+            // Switch to custom mode - clear week
+            setFilters(prev => ({
+                ...prev,
+                weekValue: '',
+                weekDate: ''
+            }));
+            setWeekRange('');
+        }
+    };
+
+    // Handle custom date change
+    const handleCustomDateChange = (field, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
 
     const handleScoreColumnChange = (columnValue) => {
         const currentColumns = filters.selectedScoreColumns || [];
@@ -53,27 +93,92 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
         }
     };
 
+    // Check if form is valid for submission
+    const isFormValid = () => {
+        if (dateRangeMode === 'week') {
+            return filters.weekValue && filters.classId;
+        } else {
+            return filters.startDate && filters.endDate && filters.classId;
+        }
+    };
+
     return (
         <div className="space-y-4">
-            {/* Week Selection and Report Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Chọn tuần <span className="text-red-500">*</span>
-                    </label>
+            {/* Date Range Mode Selection */}
+            <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Chọn cách lọc thời gian:</span>
+                <label className="flex items-center">
                     <input
-                        type="week"
-                        value={filters.weekValue || ''}
-                        onChange={(e) => handleWeekChange(e.target.value, setFilters, setWeekRange)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required
+                        type="radio"
+                        name="dateRangeMode"
+                        value="week"
+                        checked={dateRangeMode === 'week'}
+                        onChange={(e) => handleDateRangeModeChange(e.target.value)}
+                        className="mr-2"
                     />
-                    {weekRange && (
-                        <div className="mt-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded">
-                            📅 {weekRange}
+                    <span className="text-sm text-gray-900">Chọn tuần</span>
+                </label>
+                <label className="flex items-center">
+                    <input
+                        type="radio"
+                        name="dateRangeMode"
+                        value="custom"
+                        checked={dateRangeMode === 'custom'}
+                        onChange={(e) => handleDateRangeModeChange(e.target.value)}
+                        className="mr-2"
+                    />
+                    <span className="text-sm text-gray-900">Chọn từ ngày - đến ngày</span>
+                </label>
+            </div>
+
+            {/* Date Selection and Report Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dateRangeMode === 'week' ? (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Chọn tuần <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="week"
+                            value={filters.weekValue || ''}
+                            onChange={(e) => handleWeekChange(e.target.value, setFilters, setWeekRange)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                        {weekRange && (
+                            <div className="mt-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded">
+                                📅 {weekRange}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Từ ngày <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                value={filters.startDate || ''}
+                                onChange={(e) => handleCustomDateChange('startDate', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                required
+                            />
                         </div>
-                    )}
-                </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Đến ngày <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                value={filters.endDate || ''}
+                                onChange={(e) => handleCustomDateChange('endDate', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                required
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -161,7 +266,7 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
                     >
                         <option value="all">Tất cả</option>
                         <option value="thursday">Chỉ Thứ 5</option>
-                        <option value="sunday">Chỉ Chúa nhật</option>
+                        <option value="sunday">Chỉ Chủ nhật</option>
                     </select>
                 </div>
             </div>
@@ -190,7 +295,7 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
 
             <button
                 onClick={onGenerate}
-                disabled={loading || !filters.weekValue || !filters.classId}
+                disabled={loading || !isFormValid()}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg flex items-center gap-2"
             >
                 {loading ? (

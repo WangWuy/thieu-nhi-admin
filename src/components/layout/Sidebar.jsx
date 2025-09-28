@@ -36,7 +36,7 @@ const Sidebar = ({ user, sidebarOpen, setSidebarOpen }) => {
             title: 'Hoạt động',
             items: [
                 { icon: UserCheck, label: 'Điểm danh', href: '/attendance', roles: ['ban_dieu_hanh', 'phan_doan_truong', 'giao_ly_vien'] },
-                { icon: BookOpen, label: 'Báo cáo', href: '/reports', roles: ['ban_dieu_hanh', 'phan_doan_truong'] },
+                { icon: BookOpen, label: 'Báo cáo', href: '/reports', roles: ['ban_dieu_hanh', 'phan_doan_truong', 'giao_ly_vien'] },
             ]
         },
         {
