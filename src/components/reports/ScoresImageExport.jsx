@@ -88,37 +88,41 @@ const generateScoresImageHTML = (reportData, filters) => {
         return `BẢNG ĐIỂM NĂM HỌC GIÁO LÝ ${academicYear}`;
     };
 
+    // Lấy năm học để hiển thị ở footer
+    const academicYearName = students.length > 0 && students[0].academicYear 
+        ? students[0].academicYear.name 
+        : (() => {
+            const currentYear = new Date().getFullYear();
+            return `${currentYear}-${currentYear + 1}`;
+        })();
+
     // Định nghĩa tất cả cột có thể có với nhóm
     const allColumns = [
         { key: 'thursdayScore', label: 'Đi Lễ T5', width: '80px', group: 'attendance' },
         { key: 'sundayScore', label: 'Học GL', width: '80px', group: 'attendance' },
         { key: 'attendanceAverage', label: 'Điểm TB', width: '80px', group: 'attendance' },
-        { key: 'hk1_45min', label: "45' HKI", width: '80px', group: 'study' },
-        { key: 'hk1_exam', label: 'Thi HKI', width: '80px', group: 'study' },
-        { key: 'hk2_45min', label: "45' HKII", width: '80px', group: 'study' },
-        { key: 'hk2_exam', label: 'Thi HKII', width: '80px', group: 'study' },
+        { key: 'study45Hk1', label: "45' HKI", width: '80px', group: 'study' },
+        { key: 'examHk1', label: 'Thi HKI', width: '80px', group: 'study' },
+        { key: 'study45Hk2', label: "45' HKII", width: '80px', group: 'study' },
+        { key: 'examHk2', label: 'Thi HKII', width: '80px', group: 'study' },
         { key: 'studyAverage', label: 'Điểm TB', width: '80px', group: 'study' }
     ];
 
     // Lọc cột theo selectedScoreColumns
     let selectedColumns;
+    let showSummaryColumns = true; // Biến để kiểm soát hiển thị 3 cột cuối
+    
     if (filters.selectedScoreColumns && filters.selectedScoreColumns.length > 0) {
         selectedColumns = allColumns.filter(col => filters.selectedScoreColumns.includes(col.key));
+        showSummaryColumns = false; // Ẩn 3 cột cuối khi có chọn cột
     } else {
-        selectedColumns = allColumns; // Hiện tất cả nếu không chọn
+        selectedColumns = allColumns; // Hiển thị tất cả nếu không chọn
+        showSummaryColumns = true; // Hiện 3 cột cuối
     }
 
     // Nhóm cột theo group
     const attendanceColumns = selectedColumns.filter(col => col.group === 'attendance');
     const studyColumns = selectedColumns.filter(col => col.group === 'study');
-
-    // Hàm xác định kết quả dựa trên điểm tổng
-    const getResult = (finalScore) => {
-        const score = parseFloat(finalScore) || 0;
-        if (score >= 8.5) return 'Ớ Lai';
-        if (score >= 6.5) return 'Ở Lại';
-        return '';
-    };
 
     return `
         <div style="width: 1600px; padding: 40px; background: white; font-family: Arial, sans-serif; color: black;">
@@ -164,9 +168,11 @@ const generateScoresImageHTML = (reportData, filters) => {
                     <th colspan="2" rowspan="2" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 200px; color: black; background-color: #e8f5e8;">Họ và Tên</th>
                     ${attendanceColumns.length > 0 ? `<th colspan="${attendanceColumns.length}" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; background-color: #ffe699; color: black;">Điểm Danh</th>` : ''}
                     ${studyColumns.length > 0 ? `<th colspan="${studyColumns.length}" style="border: 2px solid #000; padding: 6px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; background-color: #ddebf7; color: black;">Điểm Giáo Lý</th>` : ''}
-                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Điểm Tổng</th>
-                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 60px; background-color: #fffe99; color: black;">Hạng</th>
-                    <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Kết quả</th>
+                    ${showSummaryColumns ? `
+                        <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Điểm Tổng</th>
+                        <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 60px; background-color: #fffe99; color: black;">Hạng</th>
+                        <th rowspan="2" style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-weight: bold; font-size: 22px; width: 80px; background-color: #fffe99; color: black;">Kết quả</th>
+                    ` : ''}
                 </tr>
                 
                 <!-- Header hàng 2 -->
@@ -186,7 +192,6 @@ const generateScoresImageHTML = (reportData, filters) => {
                         const nameParts = fullName.trim().split(' ');
                         const firstName = nameParts[nameParts.length - 1] || '';
                         const lastAndMiddleName = nameParts.slice(0, -1).join(' ') || '';
-                        const result = getResult(student.finalAverage);
                         
                         return `
                             <tr>
@@ -202,9 +207,11 @@ const generateScoresImageHTML = (reportData, filters) => {
                                     const value = student[col.key] || '0.0';
                                     return `<td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #ddebf7;">${value}</td>`;
                                 }).join('')}
-                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${student.finalAverage || '0.0'}</td>
-                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #fffe99;">${student.calculatedRank || ''}</td>
-                                <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${result}</td>
+                                ${showSummaryColumns ? `
+                                    <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${student.finalAverage || '0.0'}</td>
+                                    <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; background-color: #fffe99;">${student.calculatedRank || ''}</td>
+                                    <td style="border: 2px solid #000; padding: 3px 8px 20px 8px; text-align: center; font-size: 22px; color: black; font-weight: bold; background-color: #fffe99;">${student.result}</td>
+                                ` : ''}
                             </tr>
                         `;
                     }).join('')}
@@ -214,7 +221,7 @@ const generateScoresImageHTML = (reportData, filters) => {
             <!-- Footer thông tin -->
             <div style="margin-top: 30px; font-size: 20px; color: black; text-align: center;">
                 Báo cáo được tạo ngày: ${new Date().toLocaleDateString('vi-VN')} | 
-                Lớp: ${className} | Năm học: 2025-2026
+                Lớp: ${className} | Năm học: ${academicYearName}
             </div>
         </div>
     `;

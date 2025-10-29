@@ -1,4 +1,4 @@
-const StudentScoresPreview = ({ reportData }) => {
+const StudentScoresPreview = ({ reportData, filters }) => {
     if (!reportData.ranking || reportData.ranking.length === 0) {
         return (
             <div className="text-center py-8">
@@ -14,13 +14,33 @@ const StudentScoresPreview = ({ reportData }) => {
     const students = reportData.ranking.slice(0, 50);
     const className = students.length > 0 ? students[0].class.name : 'Không xác định';
 
-    // Hàm xác định kết quả
-    const getResult = (finalScore) => {
-        const score = parseFloat(finalScore) || 0;
-        if (score >= 8.5) return 'Ớ Lai';
-        if (score >= 6.5) return 'Ở Lại';
-        return '';
-    };
+    // Định nghĩa tất cả cột có thể có với nhóm
+    const allColumns = [
+        { key: 'thursdayScore', label: 'Đi Lễ T5', width: 'w-20', group: 'attendance' },
+        { key: 'sundayScore', label: 'Học GL', width: 'w-20', group: 'attendance' },
+        { key: 'attendanceAverage', label: 'Điểm TB', width: 'w-20', group: 'attendance' },
+        { key: 'study45Hk1', label: "45' HKI", width: 'w-20', group: 'study' },
+        { key: 'examHk1', label: 'Thi HKI', width: 'w-20', group: 'study' },
+        { key: 'study45Hk2', label: "45' HKII", width: 'w-20', group: 'study' },
+        { key: 'examHk2', label: 'Thi HKII', width: 'w-20', group: 'study' },
+        { key: 'studyAverage', label: 'Điểm TB', width: 'w-20', group: 'study' }
+    ];
+
+    // Lọc cột theo selectedScoreColumns
+    let selectedColumns;
+    let showSummaryColumns = true; // Biến để kiểm soát hiển thị 3 cột cuối
+    
+    if (filters.selectedScoreColumns && filters.selectedScoreColumns.length > 0) {
+        selectedColumns = allColumns.filter(col => filters.selectedScoreColumns.includes(col.key));
+        showSummaryColumns = false; // Ẩn 3 cột cuối khi có chọn cột
+    } else {
+        selectedColumns = allColumns; // Hiển thị tất cả nếu không chọn
+        showSummaryColumns = true; // Hiện 3 cột cuối
+    }
+
+    // Nhóm cột theo group
+    const attendanceColumns = selectedColumns.filter(col => col.group === 'attendance');
+    const studyColumns = selectedColumns.filter(col => col.group === 'study');
 
     return (
         <div className="space-y-4">
@@ -40,27 +60,50 @@ const StudentScoresPreview = ({ reportData }) => {
                             <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-12">Stt</th>
                             <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-40">Tên thánh</th>
                             <th colSpan="2" rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-green-50 w-48">Họ và Tên</th>
-                            <th colSpan="3" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699]">Điểm Danh</th>
-                            <th colSpan="5" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7]">Điểm Giáo Lý</th>
-                            <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-20">Điểm Tổng</th>
-                            <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-16">Hạng</th>
-                            <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-20">Kết quả</th>
+                            
+                            {/* Chỉ hiển thị nhóm Điểm Danh nếu có cột */}
+                            {attendanceColumns.length > 0 && (
+                                <th colSpan={attendanceColumns.length} className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699]">
+                                    Điểm Danh
+                                </th>
+                            )}
+                            
+                            {/* Chỉ hiển thị nhóm Điểm Giáo Lý nếu có cột */}
+                            {studyColumns.length > 0 && (
+                                <th colSpan={studyColumns.length} className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7]">
+                                    Điểm Giáo Lý
+                                </th>
+                            )}
+                            
+                            {/* Chỉ hiện 3 cột cuối khi KHÔNG chọn cột nào */}
+                            {showSummaryColumns && (
+                                <>
+                                    <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-20">Điểm Tổng</th>
+                                    <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-16">Hạng</th>
+                                    <th rowSpan="2" className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#fffe99] w-20">Kết quả</th>
+                                </>
+                            )}
                         </tr>
+                        
                         {/* Header hàng 2 */}
                         <tr className="bg-gray-50">
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699] w-20">Đi Lễ T5</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699] w-20">Học GL</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699] w-20">Điểm TB</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] w-20">45' HKI</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] w-20">Thi HKI</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] w-20">45' HKII</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] w-20">Thi HKII</th>
-                            <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] w-20">Điểm TB</th>
+                            {/* Hiển thị các cột Điểm Danh được chọn */}
+                            {attendanceColumns.map(col => (
+                                <th key={col.key} className={`border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ffe699] ${col.width}`}>
+                                    {col.label}
+                                </th>
+                            ))}
+                            
+                            {/* Hiển thị các cột Điểm Giáo Lý được chọn */}
+                            {studyColumns.map(col => (
+                                <th key={col.key} className={`border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-700 bg-[#ddebf7] ${col.width}`}>
+                                    {col.label}
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
                         {students.map((student, index) => {
-                            const result = getResult(student.finalAverage);
                             const fullName = student.fullName || '';
                             const nameParts = fullName.trim().split(' ');
                             const firstName = nameParts[nameParts.length - 1] || '';
@@ -72,17 +115,39 @@ const StudentScoresPreview = ({ reportData }) => {
                                     <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900">{student.saintName || ''}</td>
                                     <td className="border border-gray-300 px-3 py-2 text-left text-sm text-gray-900 border-r-0 pl-4">{lastAndMiddleName}</td>
                                     <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 border-l-0">{firstName}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ffe699]">{student.thursdayScore || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ffe699]">{student.sundayScore || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ffe699]">{student.attendanceAverage || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">{student.hk1_45min || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">{student.hk1_exam || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">{student.hk2_45min || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">{student.hk2_exam || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">{student.studyAverage || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black bg-[#fffe99]">{student.finalAverage || '0.0'}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#fffe99]">{student.calculatedRank || ''}</td>
-                                    <td className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-900 bg-[#fffe99]">{result}</td>
+                                    
+                                    {/* Hiển thị các cột Điểm Danh được chọn */}
+                                    {attendanceColumns.map(col => {
+                                        const value = student[col.key] !== undefined && student[col.key] !== null 
+                                            ? student[col.key] 
+                                            : '0.0';
+                                        return (
+                                            <td key={col.key} className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ffe699]">
+                                                {value}
+                                            </td>
+                                        );
+                                    })}
+                                    
+                                    {/* Hiển thị các cột Điểm Giáo Lý được chọn */}
+                                    {studyColumns.map(col => {
+                                        const value = student[col.key] !== undefined && student[col.key] !== null 
+                                            ? student[col.key] 
+                                            : '0.0';
+                                        return (
+                                            <td key={col.key} className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#ddebf7]">
+                                                {value}
+                                            </td>
+                                        );
+                                    })}
+                                    
+                                    {/* Chỉ hiện 3 cột cuối khi KHÔNG chọn cột nào */}
+                                    {showSummaryColumns && (
+                                        <>
+                                            <td className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black bg-[#fffe99]">{student.finalAverage || '0.0'}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center text-sm text-gray-900 bg-[#fffe99]">{student.calculatedRank || ''}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-gray-900 bg-[#fffe99]">{student.result}</td>
+                                        </>
+                                    )}
                                 </tr>
                             );
                         })}
@@ -111,13 +176,13 @@ const StudentScoresPreview = ({ reportData }) => {
                         <div className="text-2xl font-bold text-green-600">
                             {reportData.statistics.averageAttendanceScore}
                         </div>
-                        <div className="text-sm text-gray-600">TB Đi Lễ T5</div>
+                        <div className="text-sm text-gray-600">TB Điểm Danh</div>
                     </div>
                     <div className="bg-yellow-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-yellow-600">
                             {reportData.statistics.averageStudyScore}
                         </div>
-                        <div className="text-sm text-gray-600">TB Học GL</div>
+                        <div className="text-sm text-gray-600">TB Giáo Lý</div>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-purple-600">

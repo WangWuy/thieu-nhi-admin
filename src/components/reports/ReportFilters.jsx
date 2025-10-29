@@ -12,14 +12,14 @@ const ReportFilters = ({ filters, setFilters, availableFilters, onGenerate, load
     ];
 
     const scoreColumns = [
-        { value: 'attendanceAverage', label: 'Đi Lễ T5' },
-        { value: 'studyAverage', label: 'Học GL' },
-        { value: 'midtermAverage', label: 'Điểm TB' },
-        { value: 'hk1_45min', label: '45\' HKI' },
-        { value: 'hk1_exam', label: 'Thi HKI' },
-        { value: 'hk2_45min', label: '45\' HKII' },
-        { value: 'hk2_exam', label: 'Thi HKII' },
-        { value: 'finalAverage', label: 'Điểm Tổng' }
+        { value: 'thursdayScore', label: 'Đi Lễ T5' },
+        { value: 'sundayScore', label: 'Học GL' },
+        { value: 'attendanceAverage', label: 'Điểm TB' },
+        { value: 'study45Hk1', label: '45\' HKI' },
+        { value: 'examHk1', label: 'Thi HKI' },
+        { value: 'study45Hk2', label: '45\' HKII' },
+        { value: 'examHk2', label: 'Thi HKII' },
+        { value: 'studyAverage', label: 'Điểm Tổng' }
     ];
 
     // Initialize default week value on component mount

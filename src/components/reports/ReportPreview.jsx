@@ -45,7 +45,7 @@ const ReportPreview = ({ reportData, filters }) => {
                 </div>
             </div>
 
-            {PreviewComponent && <PreviewComponent reportData={reportData} />}
+            {PreviewComponent && <PreviewComponent reportData={reportData} filters={filters} />}
         </div>
     );
 };
