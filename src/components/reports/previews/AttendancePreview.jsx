@@ -18,7 +18,7 @@ const AttendancePreview = ({ reportData }) => {
         reportData.studentsWithoutAttendanceList || []
     );
 
-    // Get sorted columns (last 3) or default columns using utils
+    // Get sorted columns (last 5) or default columns using utils
     const sortedColumns = getSortedColumns(allWeeks, reportData.filters);
 
     // Display first 50 students

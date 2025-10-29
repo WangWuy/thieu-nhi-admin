@@ -147,7 +147,7 @@ export const mergeAndSortStudents = (attendanceByStudentAndWeek, studentsWithout
 };
 
 /**
- * Get sorted columns (last 3) or default columns
+ * Get sorted columns (last 5) or default columns
  * @param {Map} allWeeks - All weeks map
  * @param {Object} filters - Filters for default columns
  * @returns {Array} - Array of [columnKey, columnInfo] pairs
@@ -156,7 +156,7 @@ export const getSortedColumns = (allWeeks, filters) => {
     if (allWeeks.size > 0) {
         return Array.from(allWeeks.entries())
             .sort(([, a], [, b]) => new Date(a.date) - new Date(b.date))
-            .slice(-3);
+            .slice(-5);
     } else {
         return createDefaultColumns(filters);
     }
