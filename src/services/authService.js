@@ -71,6 +71,13 @@ export const authService = {
         return user ? JSON.parse(user) : null;
     },
 
+    updateStoredUser(updates = {}) {
+        const currentUser = this.getCurrentUserFromStorage() || {};
+        const updatedUser = { ...currentUser, ...updates };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return updatedUser;
+    },
+
     // ✅ Get user with assigned class info (sync method)
     getCurrentUserSync() {
         const user = this.getCurrentUserFromStorage();

@@ -52,6 +52,12 @@ export const userService = {
         }
     },
 
+    async uploadUserAvatar(id, file, onProgress = null) {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        return api.upload(`/users/${id}/avatar`, formData, onProgress);
+    },
+
     // FIX: Đổi method từ PUT sang POST để match backend
     async resetPassword(id, newPassword) {
         try {

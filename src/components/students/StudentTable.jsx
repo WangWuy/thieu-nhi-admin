@@ -66,25 +66,30 @@ const StudentTable = ({
             return (
               <tr
                 key={student.id}
-                className={`hover:bg-gray-50 ${isEditingThisStudent ? "bg-blue-50" : ""} ${
-                  !student.isActive ? "bg-red-50 opacity-75" : ""
-                }`}
+                className={`hover:bg-gray-50 ${isEditingThisStudent ? "bg-blue-50" : ""} ${!student.isActive ? "bg-red-50 opacity-75" : ""
+                  }`}
               >
                 {/* Saint + Middle Name */}
                 <td className="px-4 py-4">
                   <div className="flex items-center">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        !student.isActive ? "bg-gray-400" : "bg-blue-600"
-                      }`}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden ${!student.isActive ? "bg-gray-400" : "bg-blue-600"
+                        }`}
                     >
-                      <GraduationCap className="w-4 h-4 text-white" />
+                      {student.avatarUrl ? (
+                        <img
+                          src={student.avatarUrl}
+                          alt={student.fullName || 'Student'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <GraduationCap className="w-6 h-6 text-white" />
+                      )}
                     </div>
                     <div className="ml-3">
                       <div
-                        className={`text-sm font-medium ${
-                          !student.isActive ? "text-gray-500" : "text-gray-900"
-                        }`}
+                        className={`text-sm font-medium ${!student.isActive ? "text-gray-500" : "text-gray-900"
+                          }`}
                       >
                         {saintNameWithMiddleName}
                         {!student.isActive && (
@@ -99,9 +104,8 @@ const StudentTable = ({
                 {/* First name */}
                 <td className="px-3 py-4 align-top">
                   <div
-                    className={`text-sm font-medium mt-1 ${
-                      !student.isActive ? "text-gray-500" : "text-gray-900"
-                    }`}
+                    className={`text-sm font-medium mt-1 ${!student.isActive ? "text-gray-500" : "text-gray-900"
+                      }`}
                   >
                     {firstName}
                   </div>

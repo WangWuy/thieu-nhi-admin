@@ -19,6 +19,12 @@ export const studentService = {
         return apiService.put(`/students/${id}`, studentData);
     },
 
+    async uploadStudentAvatar(id, file, onProgress = null) {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        return apiService.upload(`/students/${id}/avatar`, formData, onProgress);
+    },
+
     async deleteStudent(id) {
         return apiService.delete(`/students/${id}`);
     },

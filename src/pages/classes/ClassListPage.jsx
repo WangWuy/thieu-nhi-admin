@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { classService } from '../../services/classService.js';
 import { departmentService } from '../../services/departmentService.js';
-import ClassModal from '../../components/classes/ClassModal.jsx';
 
 const ClassListPage = () => {
     const navigate = useNavigate();
@@ -22,9 +21,6 @@ const ClassListPage = () => {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selectedClass, setSelectedClass] = useState(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -49,11 +45,6 @@ const ClassListPage = () => {
         }
     };
 
-    const handleEditClass = (classItem) => {
-        setSelectedClass(classItem);
-        setShowEditModal(true);
-    };
-
     const handleDeleteClass = async (classId) => {
         if (!confirm('Bạn có chắc muốn xóa lớp này?')) return;
 
@@ -64,19 +55,6 @@ const ClassListPage = () => {
         } catch (err) {
             alert('Lỗi: ' + err.message);
         }
-    };
-
-    const handleModalSave = () => {
-        fetchData();
-        setSelectedClass(null);
-        setShowCreateModal(false);
-        setShowEditModal(false);
-    };
-
-    const handleModalClose = () => {
-        setSelectedClass(null);
-        setShowCreateModal(false);
-        setShowEditModal(false);
     };
 
     // Filter classes
@@ -169,7 +147,7 @@ const ClassListPage = () => {
                     </div>
 
                     <button
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => navigate('/classes/new')}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
@@ -270,7 +248,7 @@ const ClassListPage = () => {
                                                             <Eye className="w-4 h-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleEditClass(classItem)}
+                                                            onClick={() => navigate(`/classes/${classItem.id}/edit`)}
                                                             className="text-blue-600 hover:text-blue-800"
                                                             title="Chỉnh sửa"
                                                         >
@@ -301,7 +279,7 @@ const ClassListPage = () => {
                     </div>
                     {!searchTerm && !departmentFilter && (
                         <button
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={() => navigate('/classes/new')}
                             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
                         >
                             Tạo lớp đầu tiên
@@ -310,20 +288,6 @@ const ClassListPage = () => {
                 </div>
             )}
 
-            {/* Modals */}
-            <ClassModal
-                classItem={null}
-                isOpen={showCreateModal}
-                onClose={handleModalClose}
-                onSave={handleModalSave}
-            />
-
-            <ClassModal
-                classItem={selectedClass}
-                isOpen={showEditModal}
-                onClose={handleModalClose}
-                onSave={handleModalSave}
-            />
         </div>
     );
 };

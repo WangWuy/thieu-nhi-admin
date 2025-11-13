@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Plus,
     Search,
@@ -14,10 +15,10 @@ import { classService } from '../../services/classService';
 import { departmentService } from '../../services/departmentService';
 import { USER_ROLES } from '../../utils/constants';
 import { getRoleName } from '../../utils/helpers';
-import UserModal from '../../components/users/UserModal';
 import UserImportModal from '../../components/users/UserImportModal';
 
 const UserListPage = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -31,9 +32,6 @@ const UserListPage = () => {
     });
     const [searchInput, setSearchInput] = useState('');
     const [pagination, setPagination] = useState({});
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
 
     // New states for departments and classes
@@ -57,11 +55,11 @@ const UserListPage = () => {
     // Filter classes when department filter changes
     useEffect(() => {
         if (filters.departmentFilter) {
-            const filtered = classes.filter(cls => 
+            const filtered = classes.filter(cls =>
                 cls.departmentId === parseInt(filters.departmentFilter)
             );
             setFilteredClasses(filtered);
-            
+
             // Reset class filter if current selection doesn't belong to selected department
             if (filters.classFilter) {
                 const isValidClass = filtered.some(cls => cls.id === parseInt(filters.classFilter));
@@ -153,11 +151,6 @@ const UserListPage = () => {
         setFilters(prev => ({ ...prev, page: newPage }));
     };
 
-    const handleEditUser = (user) => {
-        setSelectedUser(user);
-        setShowEditModal(true);
-    };
-
     const handleResetPassword = async (userId) => {
         if (!confirm('Bạn có chắc muốn reset mật khẩu về "123456"?')) return;
 
@@ -179,19 +172,6 @@ const UserListPage = () => {
         } catch (err) {
             alert('Lỗi: ' + err.message);
         }
-    };
-
-    const handleModalSave = () => {
-        fetchUsers();
-        setSelectedUser(null);
-        setShowCreateModal(false);
-        setShowEditModal(false);
-    };
-
-    const handleModalClose = () => {
-        setSelectedUser(null);
-        setShowCreateModal(false);
-        setShowEditModal(false);
     };
 
     const handleImportSuccess = () => {
@@ -224,7 +204,7 @@ const UserListPage = () => {
                 </div>
             );
         }
-        
+
         // Nếu không có gì
         return (
             <div>
@@ -275,7 +255,7 @@ const UserListPage = () => {
                                 Import Excel
                             </button>
                             <button
-                                onClick={() => setShowCreateModal(true)}
+                                onClick={() => navigate('/users/new')}
                                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />
@@ -392,10 +372,18 @@ const UserListPage = () => {
                                 <tr key={user.id} className="hover:bg-red-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                                <span className="text-white text-sm font-medium">
-                                                    {user.fullName.charAt(0)}
-                                                </span>
+                                            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center overflow-hidden">
+                                                {user.avatarUrl ? (
+                                                    <img
+                                                        src={user.avatarUrl}
+                                                        alt={user.fullName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span className="text-white text-sm font-medium">
+                                                        {user.fullName.charAt(0)}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-red-800">
@@ -407,8 +395,8 @@ const UserListPage = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === USER_ROLES.BAN_DIEU_HANH ? 'bg-red-100 text-red-800' :
-                                                user.role === USER_ROLES.PHAN_DOAN_TRUONG ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-green-100 text-green-800'
+                                            user.role === USER_ROLES.PHAN_DOAN_TRUONG ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-green-100 text-green-800'
                                             }`}>
                                             {getRoleName(user.role)}
                                         </span>
@@ -430,7 +418,11 @@ const UserListPage = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={() => handleEditUser(user)}
+                                                onClick={() =>
+                                                    navigate(`/users/${user.id}/edit`, {
+                                                        state: { user },
+                                                    })
+                                                }
                                                 className="text-blue-600 hover:text-blue-800"
                                                 title="Chỉnh sửa"
                                             >
@@ -492,21 +484,6 @@ const UserListPage = () => {
                     </div>
                 )}
             </div>
-
-            {/* Modals */}
-            <UserModal
-                user={null}
-                isOpen={showCreateModal}
-                onClose={handleModalClose}
-                onSave={handleModalSave}
-            />
-
-            <UserModal
-                user={selectedUser}
-                isOpen={showEditModal}
-                onClose={handleModalClose}
-                onSave={handleModalSave}
-            />
 
             <UserImportModal
                 isOpen={showImportModal}

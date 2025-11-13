@@ -325,11 +325,11 @@ const Dashboard = ({ user }) => {
                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-green-600">Có mặt:</span>
-                                    <span className="font-medium">{stats.recentAttendance.thursday.present}</span>
+                                    <span className="font-medium text-green-600">{stats.recentAttendance.thursday.present}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Chưa điểm danh:</span>
-                                    <span className="font-medium">{stats.recentAttendance.thursday.notMarked}</span>
+                                    <span className="font-medium text-gray-600">{stats.recentAttendance.thursday.notMarked}</span>
                                 </div>
                             </div>
                         </div>
@@ -338,11 +338,11 @@ const Dashboard = ({ user }) => {
                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-green-600">Có mặt:</span>
-                                    <span className="font-medium">{stats.recentAttendance.sunday.present}</span>
+                                    <span className="font-medium text-green-600">{stats.recentAttendance.sunday.present}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Chưa điểm danh:</span>
-                                    <span className="font-medium">{stats.recentAttendance.sunday.notMarked}</span>
+                                    <span className="font-medium text-gray-600">{stats.recentAttendance.sunday.notMarked}</span>
                                 </div>
                             </div>
                         </div>

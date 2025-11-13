@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { studentService } from "../../services/studentService";
 import { classService } from "../../services/classService";
 import { authService } from "../../services/authService";
-import StudentForm from "../../components/students/StudentForm";
 import ExcelImportModal from "../../components/import/ExcelImportModal";
 
 import ClassBanner from "../../components/students/ClassBanner";
@@ -13,6 +12,7 @@ import Pagination from "../../components/students/Pagination";
 import EmptyState from "../../components/students/EmptyState";
 
 const StudentListPage = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentUser, setCurrentUser] = useState(null);
   const [students, setStudents] = useState([]);
@@ -29,9 +29,6 @@ const StudentListPage = () => {
   });
 
   const [pagination, setPagination] = useState({});
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
   const [editingScores, setEditingScores] = useState({});
@@ -177,16 +174,6 @@ const StudentListPage = () => {
   const handlePageChange = (newPage) =>
     setFilters((prev) => ({ ...prev, page: newPage }));
 
-  const handleCreateStudent = async (data) => {
-    await studentService.createStudent(data);
-    fetchStudents();
-  };
-
-  const handleEditStudent = async (data) => {
-    await studentService.updateStudent(selectedStudent.id, data);
-    fetchStudents();
-  };
-
   const handleDeleteStudent = async (id) => {
     if (!confirm("Bạn có chắc muốn xóa thiếu nhi này?")) return;
     await studentService.deleteStudent(id);
@@ -276,7 +263,11 @@ const StudentListPage = () => {
         onActiveFilterChange={(val) =>
           setFilters((prev) => ({ ...prev, isActiveFilter: val, page: 1 }))
         }
-        onCreateClick={() => setShowCreateModal(true)}
+        onCreateClick={() =>
+          navigate("/students/new", {
+            state: { defaultClassId: filters.classFilter },
+          })
+        }
         onImportClick={() => setShowImportModal(true)}
       />
 
@@ -288,10 +279,9 @@ const StudentListPage = () => {
         cancelEditingScores={cancelEditingScores}
         updateScoreValue={updateScoreValue}
         saveScores={saveScores}
-        onEditStudent={(s) => {
-          setSelectedStudent(s);
-          setShowEditModal(true);
-        }}
+        onEditStudent={(student) =>
+          navigate(`/students/${student.id}/edit`)
+        }
         onDeleteStudent={handleDeleteStudent}
         onRestoreStudent={handleRestoreStudent}
         currentUser={currentUser}
@@ -307,26 +297,6 @@ const StudentListPage = () => {
           searchInput={searchInput}
         />
       )}
-
-      {/* Modals */}
-      <StudentForm
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSave={handleCreateStudent}
-        classes={classes}
-        defaultClassId={filters.classFilter}
-      />
-
-      <StudentForm
-        student={selectedStudent}
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedStudent(null);
-        }}
-        onSave={handleEditStudent}
-        classes={classes}
-      />
 
       <ExcelImportModal
         isOpen={showImportModal}

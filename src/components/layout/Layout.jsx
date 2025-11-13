@@ -23,10 +23,10 @@ const Layout = ({ children, user, onLogout }) => {
     return (
         <div className="min-h-screen bg-gray-50 flex w-full overflow-hidden">
             {/* Sidebar Component */}
-            <Sidebar 
-                user={user} 
-                sidebarOpen={sidebarOpen} 
-                setSidebarOpen={setSidebarOpen} 
+            <Sidebar
+                user={user}
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
             />
 
             {/* Overlay for mobile */}
@@ -48,7 +48,7 @@ const Layout = ({ children, user, onLogout }) => {
                         >
                             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
-                        
+
                         {/* Church Name */}
                         <div className="text-2xl font-bold text-red-800">
                             Giáo xứ Thiên Ân
@@ -59,10 +59,18 @@ const Layout = ({ children, user, onLogout }) => {
                     <div className="flex items-center gap-4">
                         {/* User Info */}
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-medium">
-                                    {user?.fullName?.charAt(0) || 'U'}
-                                </span>
+                            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center overflow-hidden">
+                                {user?.avatarUrl ? (
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user?.fullName || 'User'}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span className="text-white text-sm font-medium">
+                                        {user?.fullName?.charAt(0) || 'U'}
+                                    </span>
+                                )}
                             </div>
                             <div className="hidden sm:block">
                                 <div className="text-sm font-medium text-gray-900">

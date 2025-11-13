@@ -4,8 +4,11 @@ import LoginPage from './pages/auth/LoginPage';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/dashboard/Dashboard';
 import UserListPage from './pages/users/UserListPage';
+import UserFormPage from './pages/users/UserFormPage';
 import ClassListPage from './pages/classes/ClassListPage';
+import ClassFormPage from './pages/classes/ClassFormPage';
 import StudentListPage from './pages/students/StudentListPage';
+import StudentFormPage from './pages/students/StudentFormPage';
 import AttendancePage from './pages/attendance/AttendancePage';
 import ComparisonToolsPage from './pages/metrics/ComparisonToolsPage'; 
 import ReportsPage from './pages/reports/ReportsPage';
@@ -121,6 +124,26 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/users/new"
+          element={
+            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <UserFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/:id/edit"
+          element={
+            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <UserFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/classes"
@@ -132,6 +155,26 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/classes/new"
+          element={
+            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <ClassFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/classes/:id/edit"
+          element={
+            <ProtectedRoute user={user} requiredRoles={['ban_dieu_hanh', 'phan_doan_truong']}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <ClassFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/students"
@@ -139,6 +182,26 @@ function App() {
             <ProtectedRoute user={user}>
               <AppLayout user={user} onLogout={handleLogout}>
                 <StudentListPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/students/new"
+          element={
+            <ProtectedRoute user={user}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <StudentFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/students/:id/edit"
+          element={
+            <ProtectedRoute user={user}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <StudentFormPage />
               </AppLayout>
             </ProtectedRoute>
           }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-    Settings,
     User,
     Lock,
     Bell,
@@ -20,15 +19,12 @@ import {
 } from 'lucide-react';
 import { academicYearService } from '../../services/academicYearService';
 import { authService } from '../../services/authService';
+import ProfileSettingsSection from '../../components/settings/ProfileSettingsSection';
 
 const SettingsPage = ({ user }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        saintName: user?.saintName || '',
-        fullName: user?.fullName || '',
-        phoneNumber: user?.phoneNumber || '',
-        address: user?.address || '',
+    const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -212,30 +208,29 @@ const SettingsPage = ({ user }) => {
         setError('');
     };
 
-    const handleSave = () => {
+    const handleNotificationsSave = () => {
         alert('Cài đặt đã được lưu!');
     };
 
     const handlePasswordChange = async () => {
-        if (formData.newPassword !== formData.confirmPassword) {
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
             alert('Mật khẩu xác nhận không khớp!');
             return;
         }
     
-        if (!formData.currentPassword || !formData.newPassword) {
+        if (!passwordForm.currentPassword || !passwordForm.newPassword) {
             alert('Vui lòng nhập đầy đủ thông tin!');
             return;
         }
     
         try {
-            await authService.changePassword(formData.currentPassword, formData.newPassword);
+            await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
             alert('Đổi mật khẩu thành công!');
-            setFormData(prev => ({
-                ...prev,
+            setPasswordForm({
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
-            }));
+            });
         } catch (err) {
             alert('Lỗi: ' + (err.response?.data?.message || err.message));
         }
@@ -275,73 +270,7 @@ const SettingsPage = ({ user }) => {
                         {activeTab === 'profile' && (
                             <div>
                                 <h2 className="text-lg font-semibold mb-4 text-red-800">Thông tin cá nhân</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-red-700 mb-2">
-                                            Tên Thánh
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.saintName}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, saintName: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-red-700 mb-2">
-                                            Họ và tên
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.fullName}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-red-700 mb-2">
-                                            Số điện thoại
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={formData.phoneNumber}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-red-700 mb-2">
-                                            Vai trò
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={user?.role === 'ban_dieu_hanh' ? 'Ban Điều Hành' :
-                                                user?.role === 'phan_doan_truong' ? 'Phân Đoàn Trưởng' : 'Giáo Lý Viên'}
-                                            disabled
-                                            className="w-full px-3 py-2 border border-red-200 rounded-lg bg-red-50 text-red-500"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-red-700 mb-2">
-                                            Địa chỉ
-                                        </label>
-                                        <textarea
-                                            value={formData.address}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                                            rows={3}
-                                            className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="mt-6">
-                                    <button
-                                        onClick={handleSave}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        Lưu thay đổi
-                                    </button>
-                                </div>
+                                <ProfileSettingsSection user={user} />
                             </div>
                         )}
 
@@ -357,8 +286,8 @@ const SettingsPage = ({ user }) => {
                                         <div className="relative">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
-                                                value={formData.currentPassword}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                                                value={passwordForm.currentPassword}
+                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                                                 className="w-full px-3 py-2 pr-10 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             />
                                             <button
@@ -376,8 +305,8 @@ const SettingsPage = ({ user }) => {
                                         </label>
                                         <input
                                             type="password"
-                                            value={formData.newPassword}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, newPassword: e.target.value }))}
+                                            value={passwordForm.newPassword}
+                                            onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                                             className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                         />
                                     </div>
@@ -387,8 +316,8 @@ const SettingsPage = ({ user }) => {
                                         </label>
                                         <input
                                             type="password"
-                                            value={formData.confirmPassword}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                            value={passwordForm.confirmPassword}
+                                            onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                                             className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                         />
                                     </div>
@@ -674,7 +603,7 @@ const SettingsPage = ({ user }) => {
                                 </div>
                                 <div className="mt-6">
                                     <button
-                                        onClick={handleSave}
+                                        onClick={handleNotificationsSave}
                                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                                     >
                                         <Save className="w-4 h-4" />
