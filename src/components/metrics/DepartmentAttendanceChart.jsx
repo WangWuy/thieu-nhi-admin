@@ -26,6 +26,8 @@ const DepartmentAttendanceChart = ({
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const headerLayoutClasses = 'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between';
+    const controlLayoutClasses = 'flex flex-wrap items-center gap-3 w-full lg:justify-end';
 
     // Get valid dates for the selected attendance type
     const validDates = useMemo(() => {
@@ -103,7 +105,7 @@ const DepartmentAttendanceChart = ({
     if (loading) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className={`${headerLayoutClasses} mb-4`}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         Thống kê điểm danh theo lớp - {departmentNames[department]}
@@ -123,7 +125,7 @@ const DepartmentAttendanceChart = ({
     if (error) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className={`${headerLayoutClasses} mb-4`}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         Thống kê điểm danh theo lớp - {departmentNames[department]}
@@ -155,17 +157,17 @@ const DepartmentAttendanceChart = ({
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="border-b border-gray-200 p-4">
-                <div className="flex items-center justify-between">
+                <div className={headerLayoutClasses}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         Thống kê theo lớp - {departmentNames[department]}
                     </h3>
-                    <div className="flex items-center gap-3">
+                    <div className={controlLayoutClasses}>
                         {/* Department selector */}
                         <select
                             value={department}
                             onChange={(e) => handleDepartmentChange(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                         >
                             <option value="CHIEN">Chiên con</option>
                             <option value="AU">Ấu nhi</option>
@@ -177,7 +179,7 @@ const DepartmentAttendanceChart = ({
                         <select
                             value={attendanceType}
                             onChange={(e) => handleAttendanceTypeChange(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                         >
                             <option value="thursday">Thứ 5</option>
                             <option value="sunday">Chúa nhật</option>
@@ -187,7 +189,7 @@ const DepartmentAttendanceChart = ({
                         <select
                             value={currentDate}
                             onChange={(e) => handleDateChange(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                         >
                             {validDates.map(dateItem => (
                                 <option key={dateItem.value} value={dateItem.value}>
@@ -219,7 +221,7 @@ const DepartmentAttendanceChart = ({
                 )}
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />

@@ -41,13 +41,29 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authService.isAuthenticated()) {
-      const savedUser = authService.getCurrentUserFromStorage();
-      if (savedUser) {
-        setUser(savedUser);
+    const initializeUser = async () => {
+      if (!authService.isAuthenticated()) {
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
+
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+        const savedUser = authService.getCurrentUserFromStorage();
+        if (savedUser) {
+          setUser(savedUser);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeUser();
   }, []);
 
   const handleLogin = (userData) => {

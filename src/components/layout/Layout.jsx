@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
     Menu,
@@ -19,6 +19,15 @@ const Layout = ({ children, user, onLogout }) => {
         };
         return roleNames[role] || role;
     };
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 flex w-full overflow-hidden">

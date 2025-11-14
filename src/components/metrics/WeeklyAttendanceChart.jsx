@@ -17,6 +17,7 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const headerLayoutClasses = 'flex flex-col gap-3 md:flex-row md:items-center md:justify-between';
 
     useEffect(() => {
         fetchWeeklyTrend();
@@ -57,7 +58,7 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
     if (loading) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className={`${headerLayoutClasses} mb-4`}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         Thống kê điểm danh 3 tuần gần nhất
@@ -77,7 +78,7 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
     if (error) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className={`${headerLayoutClasses} mb-4`}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         Thống kê điểm danh 3 tuần gần nhất
@@ -109,12 +110,12 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="border-b border-gray-200 p-4">
-                <div className="flex items-center justify-between">
+                <div className={headerLayoutClasses}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         {attendanceType === 'sunday' ? 'Biểu đồ Chúa nhật' : 'Biểu đồ Thứ 5'}
                     </h3>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto md:justify-end">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
                             {data?.summary?.attendanceType || (attendanceType === 'sunday' ? 'Chúa nhật' : 'Thứ 5')}
@@ -130,7 +131,7 @@ const WeeklyAttendanceChart = ({ attendanceType = 'sunday', onDataChange }) => {
                 </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />

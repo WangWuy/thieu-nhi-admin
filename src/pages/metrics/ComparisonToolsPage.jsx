@@ -22,7 +22,7 @@ const ComparisonToolsPage = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-blue-600" />
                     <h1 className="text-xl font-semibold">Thống kê điểm danh</h1>
