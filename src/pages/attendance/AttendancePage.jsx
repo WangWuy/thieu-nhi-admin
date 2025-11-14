@@ -7,7 +7,7 @@ import {
     Filter,
     Search,
     Undo,
-    Clock, 
+    Clock,
     User
 } from 'lucide-react';
 import { studentService } from '../../services/studentService';
@@ -93,18 +93,18 @@ const AttendancePage = () => {
     const fetchAttendance = async () => {
         try {
             setLoading(true);
-    
+
             const res = await studentService.getStudents({
                 classFilter: filters.classId,
                 page: 1,
                 limit: 50,
             });
-    
+
             const studentsData = res?.students || [];
             setStudents(studentsData);
-    
+
             const allStudentCodes = studentsData.map(s => s.studentCode ?? s.qrCode ?? String(s.id));
-    
+
             let todayStatus = null;
             if (allStudentCodes.length > 0) {
                 todayStatus = await attendanceService.getTodayAttendanceStatus({
@@ -113,7 +113,7 @@ const AttendancePage = () => {
                     type: filters.type
                 });
             }
-    
+
             // ✅ Merge với thêm markedBy
             const attendanceObj = {};
             studentsData.forEach(student => {
@@ -121,7 +121,7 @@ const AttendancePage = () => {
                     todayStatus?.attendanceStatus?.[student.studentCode] ||
                     todayStatus?.attendanceStatus?.[student.id] ||
                     null;
-    
+
                 attendanceObj[student.id] = {
                     isPresent: statusRecord?.isPresent ?? false,
                     note: statusRecord?.note ?? '',
@@ -129,13 +129,13 @@ const AttendancePage = () => {
                     markedBy: statusRecord?.markedBy ?? null, // ✅ THÊM markedBy
                 };
             });
-    
+
             setAttendanceData(attendanceObj);
-    
+
             if (todayStatus?.summary) {
                 setSummary(todayStatus.summary);
             }
-    
+
         } catch (err) {
             console.error("Fetch attendance error:", err);
             setError('Không thể tải dữ liệu điểm danh');
@@ -474,144 +474,153 @@ const AttendancePage = () => {
             )}
 
             {/* Attendance List */}
-{loading ? (
-    <div className="space-y-3">
-        {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-red-100 rounded animate-pulse"></div>
-        ))}
-    </div>
-) : students.length > 0 ? (
-    <div className="bg-white rounded-lg shadow-sm border border-red-100">
-        <div className="p-4 border-b border-red-100">
-            <h3 className="font-medium text-red-800">
-                Điểm danh {selectedClass?.name} - {getAttendanceTypeName(filters.type)}
-            </h3>
-            <p className="text-sm text-red-600">
-                Ngày: {new Date(filters.date).toLocaleDateString('vi-VN')}
-            </p>
-        </div>
-
-        <div className="divide-y divide-red-100">
-            {students.map((student) => {
-                const attendance = attendanceData[student.id];
-                const isPresent = attendance?.isPresent;
-                
-                return (
-                    <div key={student.id} className="p-4 hover:bg-red-50">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                    isPresent
-                                        ? 'bg-green-600'
-                                        : isPresent === false
-                                            ? 'bg-red-600'
-                                            : 'bg-gray-400'
-                                }`}>
-                                    {isPresent ? (
-                                        <Check className="w-5 h-5 text-white" />
-                                    ) : isPresent === false ? (
-                                        <X className="w-5 h-5 text-white" />
-                                    ) : (
-                                        <Users className="w-5 h-5 text-white" />
-                                    )}
-                                </div>
-                                
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="font-medium text-red-800">
-                                            {student.saintName && `${student.saintName} `}{student.fullName}
-                                        </div>
-                                        {isPresent && (
-                                            <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                                                <Check className="w-3 h-3 text-green-600" />
-                                                <span className="text-xs font-medium text-green-700">Đã điểm danh</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div className="text-sm text-red-500">{student.studentCode}</div>
-                                    
-                                    {/* ✅ THÊM: Hiển thị thông tin điểm danh */}
-                                    {isPresent && (
-                                        <div className="mt-2 space-y-1">
-                                            <div className="flex items-center gap-2 text-xs text-green-600">
-                                                <Check className="w-3 h-3" />
-                                                <span className="font-medium">Có mặt</span>
-                                            </div>
-                                            
-                                            {attendance.markedAt && (
-                                                <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                    <Clock className="w-3 h-3" />
-                                                    <span> Điểm danh lúc:
-                                                        {new Date(attendance.markedAt).toLocaleString('vi-VN', {
-                                                            day: '2-digit',
-                                                            month: '2-digit',
-                                                            year: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            
-                                            {attendance.markedBy && (
-                                                <div className="flex items-center gap-2 text-xs text-gray-600">
-                                                    <User className="w-3 h-3" />
-                                                    <span>Điểm danh bởi: {attendance.markedBy}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    {isPresent ? (
-                                        // Nếu đã điểm danh -> chỉ hiển thị nút Hủy
-                                        <button
-                                            onClick={() => handleUndoSingleStudent(student)}
-                                            disabled={saving}
-                                            className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-100 text-orange-800 border-2 border-orange-300 hover:bg-orange-200 transition-colors"
-                                        >
-                                            {saving ? (
-                                                <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin inline mr-1"></div>
-                                            ) : (
-                                                <Undo className="w-4 h-4 inline mr-1" />
-                                            )}
-                                            Hủy
-                                        </button>
-                                    ) : (
-                                        // Nếu chưa điểm danh -> hiển thị nút Có mặt
-                                        <button
-                                            onClick={() => handleAttendanceChange(student.id, 'isPresent', true)}
-                                            disabled={saving}
-                                            className="bg-gray-100 text-gray-600 hover:bg-green-50 disabled:bg-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                                        >
-                                            {saving ? (
-                                                <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin inline mr-1"></div>
-                                            ) : (
-                                                <Check className="w-4 h-4 inline mr-1" />
-                                            )}
-                                            Có mặt
-                                        </button>
-                                    )}
-                                </div>
-
-                                <input
-                                    type="text"
-                                    placeholder="Ghi chú..."
-                                    value={attendance?.note || ''}
-                                    onChange={(e) => handleAttendanceChange(student.id, 'note', e.target.value)}
-                                    className="w-32 px-3 py-1 text-sm border border-red-200 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                />
-                            </div>
-                        </div>
+            {loading ? (
+                <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="h-16 bg-red-100 rounded animate-pulse"></div>
+                    ))}
+                </div>
+            ) : students.length > 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border border-red-100">
+                    <div className="p-4 border-b border-red-100">
+                        <h3 className="font-medium text-red-800">
+                            Điểm danh {selectedClass?.name} - {getAttendanceTypeName(filters.type)}
+                        </h3>
+                        <p className="text-sm text-red-600">
+                            Ngày: {new Date(filters.date).toLocaleDateString('vi-VN')}
+                        </p>
                     </div>
-                );
-            })}
-        </div>
-    </div>
+
+                    <div className="divide-y divide-red-100">
+                        {students.map((student) => {
+                            const attendance = attendanceData[student.id];
+                            const isPresent = attendance?.isPresent;
+
+                            return (
+                                <div key={student.id} className="p-4 hover:bg-red-50">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPresent
+                                                    ? 'bg-green-600'
+                                                    : isPresent === false
+                                                        ? 'bg-red-600'
+                                                        : 'bg-gray-400'
+                                                }`}>
+                                                {isPresent ? (
+                                                    <Check className="w-5 h-5 text-white" />
+                                                ) : isPresent === false ? (
+                                                    <X className="w-5 h-5 text-white" />
+                                                ) : (
+                                                    <Users className="w-5 h-5 text-white" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-medium text-red-800">
+                                                        {student.saintName && `${student.saintName} `}{student.fullName}
+                                                    </div>
+                                                    {isPresent && (
+                                                        <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
+                                                            <Check className="w-3 h-3 text-green-600" />
+                                                            <span className="text-xs font-medium text-green-700">Đã điểm danh</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="text-sm text-red-500">{student.studentCode}</div>
+
+                                                {/* ✅ THÊM: Hiển thị thông tin điểm danh */}
+                                                {isPresent && (
+                                                    <div className="mt-2 space-y-1">
+                                                        <div className="flex items-center gap-2 text-xs text-green-600">
+                                                            <Check className="w-3 h-3" />
+                                                            <span className="font-medium">Có mặt</span>
+                                                        </div>
+
+                                                        {attendance.markedAt && (
+                                                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                                <Clock className="w-3 h-3" />
+                                                                <span>
+                                                                    Điểm danh lúc:{' '}
+                                                                    {(() => {
+                                                                        const markedDate = new Date(attendance.markedAt);
+                                                                        const datePart = markedDate.toLocaleDateString('vi-VN', {
+                                                                            day: '2-digit',
+                                                                            month: '2-digit',
+                                                                            year: 'numeric'
+                                                                        });
+                                                                        const weekday = markedDate.toLocaleDateString('vi-VN', {
+                                                                            weekday: 'long'
+                                                                        });
+                                                                        const timePart = markedDate.toLocaleTimeString('vi-VN', {
+                                                                            hour: '2-digit',
+                                                                            minute: '2-digit'
+                                                                        });
+                                                                        return `${timePart}, ${datePart}, ${weekday}`;
+                                                                    })()}
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {attendance.markedBy && (
+                                                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                                <User className="w-3 h-3" />
+                                                                <span>Điểm danh bởi: {attendance.markedBy}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                                {isPresent ? (
+                                                    // Nếu đã điểm danh -> chỉ hiển thị nút Hủy
+                                                    <button
+                                                        onClick={() => handleUndoSingleStudent(student)}
+                                                        disabled={saving}
+                                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-100 text-orange-800 border-2 border-orange-300 hover:bg-orange-200 transition-colors"
+                                                    >
+                                                        {saving ? (
+                                                            <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin inline mr-1"></div>
+                                                        ) : (
+                                                            <Undo className="w-4 h-4 inline mr-1" />
+                                                        )}
+                                                        Hủy
+                                                    </button>
+                                                ) : (
+                                                    // Nếu chưa điểm danh -> hiển thị nút Có mặt
+                                                    <button
+                                                        onClick={() => handleAttendanceChange(student.id, 'isPresent', true)}
+                                                        disabled={saving}
+                                                        className="bg-gray-100 text-gray-600 hover:bg-green-50 disabled:bg-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                    >
+                                                        {saving ? (
+                                                            <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin inline mr-1"></div>
+                                                        ) : (
+                                                            <Check className="w-4 h-4 inline mr-1" />
+                                                        )}
+                                                        Có mặt
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <input
+                                                type="text"
+                                                placeholder="Ghi chú..."
+                                                value={attendance?.note || ''}
+                                                onChange={(e) => handleAttendanceChange(student.id, 'note', e.target.value)}
+                                                className="w-32 px-3 py-1 text-sm border border-red-200 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             ) : filters.classId ? (
                 <div className="text-center py-12 bg-white rounded-lg border border-red-100">
                     <Users className="w-12 h-12 text-red-400 mx-auto mb-4" />
