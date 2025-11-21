@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  User,
-  Award,
-  Calculator,
-  FileText,
-  Image as ImageIcon,
-  UploadCloud,
-} from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { classService } from "../../services/classService";
 import { studentService } from "../../services/studentService";
 import { authService } from "../../services/authService";
+import StudentAvatarSection from "../../components/students/StudentAvatarSection";
+import StudentBasicInfoSection from "../../components/students/StudentBasicInfoSection";
+import StudentNotesSection from "../../components/students/StudentNotesSection";
+import StudentScoresSection from "../../components/students/StudentScoresSection";
+import StudentAttendanceOverview from "../../components/students/StudentAttendanceOverview";
 
 const StudentFormPage = () => {
   const { id } = useParams();
@@ -298,11 +295,8 @@ const StudentFormPage = () => {
   const pageTitle = isEditMode ? "Chỉnh sửa thiếu nhi" : "Thêm thiếu nhi";
 
   const currentAvatarPreview = avatarPreview || student?.avatarUrl || "";
-
-  const ErrorMessage = ({ error }) => {
-    if (!error) return null;
-    return <p className="text-red-600 text-xs mt-1">{error}</p>;
-  };
+  const avatarFileName = avatarFile?.name || "";
+  const showRemoveAvatarButton = Boolean(avatarFile || student?.avatarUrl);
 
   return (
     <div className="space-y-6">
@@ -349,357 +343,41 @@ const StudentFormPage = () => {
               </div>
             )}
 
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-red-500" />
-                Ảnh đại diện
-              </h3>
+            <StudentAvatarSection
+              currentAvatarPreview={currentAvatarPreview}
+              avatarFileName={avatarFileName}
+              onAvatarChange={handleAvatarChange}
+              onRemoveAvatar={handleRemoveAvatar}
+              showRemoveButton={showRemoveAvatarButton}
+              error={errors.avatar}
+            />
 
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-28 h-28 rounded-full border border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                  {currentAvatarPreview ? (
-                    <img
-                      src={currentAvatarPreview}
-                      alt="Xem trước avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <ImageIcon className="w-8 h-8 text-gray-400" />
-                  )}
-                </div>
+            <StudentBasicInfoSection
+              formData={formData}
+              classes={classes}
+              onChange={handleInputChange}
+              errors={errors}
+            />
 
-                <div className="flex flex-col gap-2 w-full sm:w-auto">
-                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg cursor-pointer hover:bg-red-100">
-                    <UploadCloud className="w-4 h-4" />
-                    <span>Chọn ảnh</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarChange}
-                    />
-                  </label>
-                  {avatarFile && (
-                    <p className="text-xs text-gray-500">
-                      Đã chọn: {avatarFile.name}
-                    </p>
-                  )}
-                  {(avatarFile || student?.avatarUrl) && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveAvatar}
-                      className="text-xs text-gray-500 hover:text-gray-700 underline text-left"
-                    >
-                      Xóa ảnh đã chọn
-                    </button>
-                  )}
-                  <p className="text-xs text-gray-500">
-                    Hỗ trợ JPG, PNG, kích thước tối đa 5MB.
-                  </p>
-                </div>
-              </div>
-              <ErrorMessage error={errors.avatar} />
-            </div>
+            <StudentNotesSection
+              note={formData.note}
+              onChange={(value) => handleInputChange("note", value)}
+              error={errors.note}
+            />
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600" />
-                Thông tin cơ bản
-              </h3>
+            {isEditMode && student?.academicYear && (
+              <StudentAttendanceOverview
+                attendance={student?.attendance || []}
+                academicYear={student.academicYear}
+              />
+            )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Mã thiếu nhi *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.studentCode}
-                    onChange={(e) =>
-                      handleInputChange("studentCode", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="VD: TN0001"
-                  />
-                  <ErrorMessage error={errors.studentCode} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Lớp *
-                  </label>
-                  <select
-                    value={formData.classId}
-                    onChange={(e) =>
-                      handleInputChange("classId", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Chọn lớp</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name} ({cls.department?.displayName})
-                      </option>
-                    ))}
-                  </select>
-                  <ErrorMessage error={errors.classId} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Tên thánh
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.saintName}
-                    onChange={(e) =>
-                      handleInputChange("saintName", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="VD: Maria"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Họ và tên *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.fullName}
-                    onChange={(e) =>
-                      handleInputChange("fullName", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="VD: Nguyễn Văn A"
-                  />
-                  <ErrorMessage error={errors.fullName} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Ngày sinh
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) =>
-                      handleInputChange("birthDate", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    SĐT thiếu nhi
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) =>
-                      handleInputChange("phoneNumber", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0901234567"
-                  />
-                  <ErrorMessage error={errors.phoneNumber} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    SĐT phụ huynh 1
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.parentPhone1}
-                    onChange={(e) =>
-                      handleInputChange("parentPhone1", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0901234567"
-                  />
-                  <ErrorMessage error={errors.parentPhone1} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    SĐT phụ huynh 2
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.parentPhone2}
-                    onChange={(e) =>
-                      handleInputChange("parentPhone2", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0901234567"
-                  />
-                  <ErrorMessage error={errors.parentPhone2} />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">
-                    Địa chỉ
-                  </label>
-                  <textarea
-                    value={formData.address}
-                    onChange={(e) =>
-                      handleInputChange("address", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={2}
-                    placeholder="VD: 123 Đường ABC, Phường XYZ, Quận 1, TP.HCM"
-                  />
-                  <ErrorMessage error={errors.address} />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-yellow-600" />
-                Ghi chú
-              </h3>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Ghi chú về thiếu nhi
-                </label>
-                <textarea
-                  value={formData.note}
-                  onChange={(e) => handleInputChange("note", e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  rows={3}
-                  placeholder="VD: Thiếu nhi có tập trung tốt, rất hăng hái trong việc học..."
-                />
-                <ErrorMessage error={errors.note} />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-blue-600" />
-                Điểm số giáo lý
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-800 mb-3">Học kỳ 1</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Điểm 45 phút
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.1"
-                        value={formData.study45Hk1}
-                        onChange={(e) =>
-                          handleInputChange("study45Hk1", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0.0"
-                      />
-                      <ErrorMessage error={errors.study45Hk1} />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Điểm thi (x2)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.1"
-                        value={formData.examHk1}
-                        onChange={(e) =>
-                          handleInputChange("examHk1", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0.0"
-                      />
-                      <ErrorMessage error={errors.examHk1} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-800 mb-3">Học kỳ 2</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Điểm 45 phút
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.1"
-                        value={formData.study45Hk2}
-                        onChange={(e) =>
-                          handleInputChange("study45Hk2", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0.0"
-                      />
-                      <ErrorMessage error={errors.study45Hk2} />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Điểm thi (x2)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.1"
-                        value={formData.examHk2}
-                        onChange={(e) =>
-                          handleInputChange("examHk2", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0.0"
-                      />
-                      <ErrorMessage error={errors.examHk2} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 bg-white p-4 rounded-lg border border-blue-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calculator className="w-4 h-4 text-blue-600" />
-                  <h4 className="font-medium text-blue-800">
-                    Điểm trung bình (dự kiến)
-                  </h4>
-                </div>
-                <div className="text-2xl font-bold text-blue-700">
-                  {calculateStudyAverage()}
-                </div>
-                <div className="text-xs text-blue-600 mt-1">
-                  Công thức: (45' HK1 + 45' HK2 + Thi HK1x2 + Thi HK2x2) / 6
-                </div>
-              </div>
-
-              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <div className="text-sm text-yellow-800">
-                  <strong>Lưu ý:</strong> Điểm điểm danh và điểm tổng sẽ được
-                  tính tự động dựa trên:
-                  <ul className="list-disc list-inside mt-1 text-xs">
-                    <li>
-                      Điểm điểm danh: Từ việc điểm danh thứ 5 và Chúa nhật
-                    </li>
-                    <li>
-                      Điểm tổng: Điểm giáo lý x 0.6 + Điểm điểm danh x 0.4
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <StudentScoresSection
+              formData={formData}
+              errors={errors}
+              onChange={handleInputChange}
+              calculateAverage={calculateStudyAverage}
+            />
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <button

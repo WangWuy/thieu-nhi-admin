@@ -3,8 +3,6 @@ import {
     User,
     Lock,
     Bell,
-    Database,
-    Shield,
     Save,
     Eye,
     EyeOff,
@@ -15,11 +13,13 @@ import {
     Check,
     X,
     Calculator,
-    AlertCircle
+    AlertCircle, 
+    Database
 } from 'lucide-react';
 import { academicYearService } from '../../services/academicYearService';
 import { authService } from '../../services/authService';
 import ProfileSettingsSection from '../../components/settings/ProfileSettingsSection';
+import SystemSettingsSection from '../../components/settings/SystemSettingsSection';
 
 const SettingsPage = ({ user }) => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -616,36 +616,7 @@ const SettingsPage = ({ user }) => {
                         {/* System Tab */}
                         {activeTab === 'system' && (
                             <div>
-                                <h2 className="text-lg font-semibold mb-4 text-red-800">Cài đặt hệ thống</h2>
-                                <div className="space-y-6">
-                                    <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Shield className="w-5 h-5 text-red-600" />
-                                            <h3 className="font-medium text-red-800">Bảo mật</h3>
-                                        </div>
-                                        <p className="text-red-700 text-sm">
-                                            Hệ thống đang chạy ở chế độ an toàn. Tất cả dữ liệu được mã hóa.
-                                        </p>
-                                    </div>
-
-                                    <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Database className="w-5 h-5 text-green-600" />
-                                            <h3 className="font-medium text-green-800">Sao lưu dữ liệu</h3>
-                                        </div>
-                                        <p className="text-green-700 text-sm mb-3">
-                                            Lần sao lưu cuối: Hôm nay, 02:00 AM
-                                        </p>
-                                        <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-                                            Sao lưu ngay
-                                        </button>
-                                    </div>
-
-                                    <div className="text-sm text-red-600">
-                                        <p><strong>Phiên bản:</strong> {import.meta.env.VITE_APP_VERSION || 'v1.0.0'}</p>
-                                        <p><strong>Cập nhật cuối:</strong> 22/09/2025</p>
-                                    </div>
-                                </div>
+                                <SystemSettingsSection />
                             </div>
                         )}
                     </div>
