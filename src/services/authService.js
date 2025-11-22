@@ -3,11 +3,13 @@ import api from './api.js';
 export const authService = {
     async login(credentials, rememberLogin = false) {
         const response = await api.post('/auth/login', credentials);
+        const rawUser = response.user || response;
+        const normalizedUser = this.normalizeUser(rawUser);
 
         if (response.token) {
             // Always save token and user to localStorage
             localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
+            localStorage.setItem('user', JSON.stringify(normalizedUser));
 
             // Save credentials if remember login is checked
             if (rememberLogin) {
@@ -17,7 +19,7 @@ export const authService = {
             }
         }
 
-        return response;
+        return { ...response, user: normalizedUser };
     },
 
     async getCurrentUser() {
@@ -25,10 +27,8 @@ export const authService = {
             const response = await api.get('/auth/me');
             
             // ✅ Parse assigned class 
-            const user = {
-                ...response,
-                assignedClass: this.getAssignedClass(response.classTeachers)
-            };
+            const rawUser = response.user || response;
+            const user = this.normalizeUser(rawUser);
 
             // Update localStorage với user info mới
             localStorage.setItem('user', JSON.stringify(user));
@@ -43,10 +43,11 @@ export const authService = {
 
     // ✅ Helper method để parse class từ classTeachers
     getAssignedClass(classTeachers) {
-        if (!classTeachers || !Array.isArray(classTeachers)) return null;
-        
-        // Lấy class đầu tiên
-        return classTeachers[0]?.class || null;
+        if (!classTeachers || !Array.isArray(classTeachers) || classTeachers.length === 0) return null;
+
+        // Prefer the primary class if flagged, otherwise first available
+        const primaryClass = classTeachers.find((ct) => ct.isPrimary) || classTeachers[0];
+        return primaryClass.class || primaryClass.classInfo || null;
     },
 
     async changePassword(currentPassword, newPassword) {
@@ -73,7 +74,7 @@ export const authService = {
 
     updateStoredUser(updates = {}) {
         const currentUser = this.getCurrentUserFromStorage() || {};
-        const updatedUser = { ...currentUser, ...updates };
+        const updatedUser = this.normalizeUser({ ...currentUser, ...updates });
         localStorage.setItem('user', JSON.stringify(updatedUser));
         return updatedUser;
     },
@@ -81,13 +82,37 @@ export const authService = {
     // ✅ Get user with assigned class info (sync method)
     getCurrentUserSync() {
         const user = this.getCurrentUserFromStorage();
-        if (user && user.classTeachers) {
-            return {
-                ...user,
-                assignedClass: this.getAssignedClass(user.classTeachers)
-            };
-        }
-        return user;
+        return this.normalizeUser(user);
+    },
+
+    // Normalize user object to ensure class info is available in a consistent shape
+    normalizeUser(userData) {
+        if (!userData) return userData;
+
+        const classTeachers = this.normalizeClassTeachers(userData);
+        const assignedClass = this.getAssignedClass(classTeachers);
+
+        return {
+            ...userData,
+            classTeachers,
+            assignedClass
+        };
+    },
+
+    // Support both old (classTeachers) and new (classTeacher with classInfo) response shapes
+    normalizeClassTeachers(userData) {
+        if (!userData) return [];
+
+        const classTeachers = Array.isArray(userData.classTeachers)
+            ? userData.classTeachers
+            : userData.classTeacher
+                ? [userData.classTeacher]
+                : [];
+
+        return classTeachers.map((ct) => {
+            const classData = ct.class || ct.classInfo;
+            return classData ? { ...ct, class: classData } : ct;
+        });
     },
 
     // Remember login functionality

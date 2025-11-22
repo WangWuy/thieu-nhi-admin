@@ -7,22 +7,14 @@ import {
     CheckCircle,
     X,
     Settings,
-    Plus,
-    Edit,
-    Trash2,
-    Filter,
     RefreshCw,
     BellRing,
     Clock,
     Users,
     TrendingDown,
-    Calendar,
-    Mail,
-    Smartphone
 } from 'lucide-react';
-import { reportsService } from '../../services/reportsService';
-import { dashboardService } from '../../services/dashboardService';
 import AlertRulesManager from '../../components/alerts/AlertRulesManager';
+import { alertService } from '../../services/alertService';
 
 const AlertSystemPage = () => {
     const [loading, setLoading] = useState(false);
@@ -32,7 +24,11 @@ const AlertSystemPage = () => {
     const [activeTab, setActiveTab] = useState('alerts');
     const [selectedAlert, setSelectedAlert] = useState(null);
     const [showRulesManager, setShowRulesManager] = useState(false);
-    
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(50);
+    const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+    const [evaluatingRules, setEvaluatingRules] = useState(false);
+
     const [filters, setFilters] = useState({
         priority: 'all', // all, high, medium, low
         status: 'all', // all, unread, read, resolved
@@ -48,41 +44,42 @@ const AlertSystemPage = () => {
     });
 
     useEffect(() => {
-        fetchAlerts();
         fetchAlertRules();
-        // Set up auto-refresh every 5 minutes
-        const interval = setInterval(() => {
-            fetchAlerts();
-        }, 5 * 60 * 1000);
-
-        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
         fetchAlerts();
-    }, [filters]);
+    }, [filters, page]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchAlerts();
+        }, 5 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, [filters, page]);
 
     const fetchAlerts = async () => {
         try {
             setLoading(true);
             setError('');
 
-            // Since we don't have a real alert API yet, we'll generate alerts based on current data
-            const generatedAlerts = await generateAlertsFromData();
-            
-            // Apply filters
-            const filteredAlerts = applyFilters(generatedAlerts);
-            setAlerts(filteredAlerts);
+            const response = await alertService.getAlerts({
+                ...filters,
+                page,
+                limit: pageSize
+            });
 
-            // Update stats
-            updateAlertStats(generatedAlerts);
-
+            setAlerts(response.alerts || []);
+            setAlertStats(response.stats || { total: 0, unread: 0, high: 0, resolved: 0 });
+            const nextPagination = response.pagination || { page: page, pages: 1, total: response.alerts?.length || 0 };
+            setPagination(nextPagination);
+            if (nextPagination.page && nextPagination.page !== page) {
+                setPage(nextPagination.page);
+            }
         } catch (err) {
             setError(err.message || 'Không thể tải cảnh báo');
-            // Use mock data on error
-            const mockAlerts = generateMockAlerts();
-            setAlerts(mockAlerts);
-            updateAlertStats(mockAlerts);
+            setAlerts([]);
+            setAlertStats({ total: 0, unread: 0, high: 0, resolved: 0 });
         } finally {
             setLoading(false);
         }
@@ -90,54 +87,8 @@ const AlertSystemPage = () => {
 
     const fetchAlertRules = async () => {
         try {
-            // Mock alert rules - in real app this would come from API
-            const mockRules = [
-                {
-                    id: 1,
-                    name: 'Tỷ lệ điểm danh thấp',
-                    type: 'attendance',
-                    condition: 'attendance_rate < 70',
-                    threshold: 70,
-                    priority: 'high',
-                    enabled: true,
-                    notification: ['email', 'system'],
-                    description: 'Cảnh báo khi tỷ lệ điểm danh dưới 70%'
-                },
-                {
-                    id: 2,
-                    name: 'Điểm học tập giảm',
-                    type: 'grades',
-                    condition: 'study_score < 6.0',
-                    threshold: 6.0,
-                    priority: 'medium',
-                    enabled: true,
-                    notification: ['system'],
-                    description: 'Cảnh báo khi điểm học tập dưới 6.0'
-                },
-                {
-                    id: 3,
-                    name: 'Vắng mặt liên tục',
-                    type: 'attendance',
-                    condition: 'consecutive_absent >= 3',
-                    threshold: 3,
-                    priority: 'high',
-                    enabled: true,
-                    notification: ['email', 'sms', 'system'],
-                    description: 'Cảnh báo khi thiếu nhi vắng mặt 3 buổi liên tục'
-                },
-                {
-                    id: 4,
-                    name: 'Lớp ít thiếu nhi',
-                    type: 'system',
-                    condition: 'class_size < 10',
-                    threshold: 10,
-                    priority: 'low',
-                    enabled: false,
-                    notification: ['system'],
-                    description: 'Cảnh báo khi lớp có ít hơn 10 thiếu nhi'
-                }
-            ];
-            setAlertRules(mockRules);
+            const data = await alertService.getRules();
+            setAlertRules(data || []);
         } catch (err) {
             console.warn('Could not fetch alert rules:', err);
         }
@@ -302,19 +253,44 @@ const AlertSystemPage = () => {
     };
 
     const markAsRead = async (alertId) => {
-        setAlerts(prev => prev.map(alert => 
-            alert.id === alertId ? { ...alert, status: 'read' } : alert
-        ));
+        try {
+            await alertService.markRead(alertId);
+            fetchAlerts();
+        } catch (err) {
+            setError(err.message || 'Không thể cập nhật cảnh báo');
+        }
     };
 
     const markAsResolved = async (alertId) => {
-        setAlerts(prev => prev.map(alert => 
-            alert.id === alertId ? { ...alert, status: 'resolved' } : alert
-        ));
+        try {
+            await alertService.markResolved(alertId);
+            fetchAlerts();
+        } catch (err) {
+            setError(err.message || 'Không thể cập nhật cảnh báo');
+        }
     };
 
     const dismissAlert = async (alertId) => {
-        setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        try {
+            await alertService.deleteAlert(alertId);
+            fetchAlerts();
+        } catch (err) {
+            // Fallback: ẩn khỏi giao diện nếu không có quyền xóa
+            setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        }
+    };
+
+    const handleEvaluateRules = async () => {
+        try {
+            setEvaluatingRules(true);
+            setError('');
+            await alertService.evaluateRules({ days: 30 });
+            fetchAlerts();
+        } catch (err) {
+            setError(err.message || 'Không thể chạy đánh giá quy tắc');
+        } finally {
+            setEvaluatingRules(false);
+        }
     };
 
     const getAlertIcon = (type, priority) => {
@@ -386,6 +362,13 @@ const AlertSystemPage = () => {
         { value: 'system', label: 'Hệ thống', icon: Settings }
     ];
 
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+        setPage(1);
+    };
+
+    const getAlertTimestamp = (alert) => alert?.createdAt || alert?.timestamp || alert?.updatedAt || new Date();
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -394,14 +377,24 @@ const AlertSystemPage = () => {
                     <BellRing className="w-5 h-5 text-blue-600" />
                     <span className="text-sm text-gray-600">Hệ thống cảnh báo và thông báo tự động</span>
                 </div>
-                <button
-                    onClick={fetchAlerts}
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                >
-                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    Làm mới
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleEvaluateRules}
+                        disabled={evaluatingRules}
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
+                        {evaluatingRules ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
+                        Chạy quy tắc
+                    </button>
+                    <button
+                        onClick={fetchAlerts}
+                        disabled={loading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
+                        {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                        Làm mới
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -480,7 +473,7 @@ const AlertSystemPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
                                 <select
                                     value={filters.priority}
-                                    onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+                                    onChange={(e) => handleFilterChange('priority', e.target.value)}
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 >
                                     {priorityOptions.map(option => (
@@ -490,7 +483,7 @@ const AlertSystemPage = () => {
 
                                 <select
                                     value={filters.status}
-                                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                                    onChange={(e) => handleFilterChange('status', e.target.value)}
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 >
                                     {statusOptions.map(option => (
@@ -500,7 +493,7 @@ const AlertSystemPage = () => {
 
                                 <select
                                     value={filters.type}
-                                    onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                                    onChange={(e) => handleFilterChange('type', e.target.value)}
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 >
                                     {typeOptions.map(option => (
@@ -510,7 +503,7 @@ const AlertSystemPage = () => {
 
                                 <select
                                     value={filters.timeRange}
-                                    onChange={(e) => setFilters(prev => ({ ...prev, timeRange: e.target.value }))}
+                                    onChange={(e) => handleFilterChange('timeRange', e.target.value)}
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="1day">Hôm nay</option>
@@ -559,8 +552,8 @@ const AlertSystemPage = () => {
                                                     <p className="text-gray-700 text-sm mb-2">{alert.message}</p>
                                                     <div className="flex items-center gap-4 text-xs text-gray-500">
                                                         <span className="flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            {formatTimeAgo(alert.timestamp)}
+                                                        <Clock className="w-3 h-3" />
+                                                            {formatTimeAgo(getAlertTimestamp(alert))}
                                                         </span>
                                                         <span>Nguồn: {alert.source}</span>
                                                     </div>
@@ -597,6 +590,30 @@ const AlertSystemPage = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {pagination.pages > 1 && (
+                                <div className="flex items-center justify-end gap-3 pt-2 text-sm text-gray-600">
+                                    <span>
+                                        Trang {pagination.page} / {pagination.pages} (Tổng {pagination.total})
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={pagination.page <= 1}
+                                            className="px-3 py-1 border rounded-lg disabled:text-gray-400 disabled:border-gray-200"
+                                        >
+                                            Trước
+                                        </button>
+                                        <button
+                                            onClick={() => setPage(prev => Math.min(prev + 1, pagination.pages))}
+                                            disabled={pagination.page >= pagination.pages}
+                                            className="px-3 py-1 border rounded-lg disabled:text-gray-400 disabled:border-gray-200"
+                                        >
+                                            Sau
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
