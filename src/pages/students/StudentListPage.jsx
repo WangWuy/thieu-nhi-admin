@@ -186,6 +186,10 @@ const StudentListPage = () => {
     fetchStudents();
   };
 
+  const handleViewAttendance = (student) => {
+    navigate(`/students/${student.id}/attendance`);
+  };
+
   // ==== Score Editing ====
 
   const startEditingScores = (id, scores) => {
@@ -284,6 +288,7 @@ const StudentListPage = () => {
         }
         onDeleteStudent={handleDeleteStudent}
         onRestoreStudent={handleRestoreStudent}
+        onViewAttendance={handleViewAttendance}
         currentUser={currentUser}
       />
 

@@ -8,7 +8,6 @@ import StudentAvatarSection from "../../components/students/StudentAvatarSection
 import StudentBasicInfoSection from "../../components/students/StudentBasicInfoSection";
 import StudentNotesSection from "../../components/students/StudentNotesSection";
 import StudentScoresSection from "../../components/students/StudentScoresSection";
-import StudentAttendanceOverview from "../../components/students/StudentAttendanceOverview";
 
 const StudentFormPage = () => {
   const { id } = useParams();
@@ -364,13 +363,6 @@ const StudentFormPage = () => {
               onChange={(value) => handleInputChange("note", value)}
               error={errors.note}
             />
-
-            {isEditMode && student?.academicYear && (
-              <StudentAttendanceOverview
-                attendance={student?.attendance || []}
-                academicYear={student.academicYear}
-              />
-            )}
 
             <StudentScoresSection
               formData={formData}

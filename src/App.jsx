@@ -9,6 +9,7 @@ import ClassListPage from './pages/classes/ClassListPage';
 import ClassFormPage from './pages/classes/ClassFormPage';
 import StudentListPage from './pages/students/StudentListPage';
 import StudentFormPage from './pages/students/StudentFormPage';
+import StudentAttendancePage from './pages/students/StudentAttendancePage';
 import AttendancePage from './pages/attendance/AttendancePage';
 import ComparisonToolsPage from './pages/metrics/ComparisonToolsPage'; 
 import ReportsPage from './pages/reports/ReportsPage';
@@ -218,6 +219,16 @@ function App() {
             <ProtectedRoute user={user}>
               <AppLayout user={user} onLogout={handleLogout}>
                 <StudentFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/students/:id/attendance"
+          element={
+            <ProtectedRoute user={user}>
+              <AppLayout user={user} onLogout={handleLogout}>
+                <StudentAttendancePage />
               </AppLayout>
             </ProtectedRoute>
           }

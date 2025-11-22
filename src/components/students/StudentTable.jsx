@@ -1,4 +1,4 @@
-import { GraduationCap, Edit, Trash2, Award, RotateCcw, Save, X } from "lucide-react";
+import { GraduationCap, Edit, Trash2, Award, RotateCcw, Save, X, CalendarCheck } from "lucide-react";
 import ScoreEditCell from "./ScoreEditCell";
 
 const StudentTable = ({
@@ -12,6 +12,7 @@ const StudentTable = ({
   onEditStudent,
   onDeleteStudent,
   onRestoreStudent,
+  onViewAttendance,
   currentUser,
 }) => {
   const calculateAge = (birthDate) => {
@@ -192,6 +193,14 @@ const StudentTable = ({
                           disabled={!student.isActive}
                         >
                           <Award className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => onViewAttendance?.(student)}
+                          className="text-green-600 hover:text-green-800"
+                          title="Xem điểm danh"
+                          disabled={!student.isActive}
+                        >
+                          <CalendarCheck className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => onEditStudent(student)}
