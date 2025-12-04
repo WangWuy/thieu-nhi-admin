@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { studentService } from "../../services/studentService";
 import { classService } from "../../services/classService";
 import { authService } from "../../services/authService";
@@ -11,8 +12,11 @@ import StudentTable from "../../components/students/StudentTable";
 import Pagination from "../../components/students/Pagination";
 import EmptyState from "../../components/students/EmptyState";
 
+const STUDENT_LIST_CACHE_KEY = "student-list-cache";
+
 const StudentListPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentUser, setCurrentUser] = useState(null);
   const [students, setStudents] = useState([]);
@@ -37,6 +41,8 @@ const StudentListPage = () => {
 
   const [userLoaded, setUserLoaded] = useState(false);
   const [classesLoaded, setClassesLoaded] = useState(false);
+  const skipNextFetchRef = useRef(false);
+  const fromClassList = Boolean(location.state?.fromClassList);
 
   // Load current user
   useEffect(() => {
@@ -95,6 +101,47 @@ const StudentListPage = () => {
   // Sync search input
   useEffect(() => setSearchInput(filters.search), [filters.search]);
 
+  // Restore cached list (keep data when navigating back)
+  useEffect(() => {
+    if (typeof window === "undefined" || !currentUser) return;
+
+    try {
+      const cachedRaw = sessionStorage.getItem(STUDENT_LIST_CACHE_KEY);
+      if (!cachedRaw) return;
+
+      const cached = JSON.parse(cachedRaw);
+      const cachedUserId = cached?.userId;
+      const currentUserId = currentUser.id || currentUser._id;
+      if (cachedUserId && currentUserId && cachedUserId !== currentUserId) return;
+
+      const classIdFromUrl = searchParams.get("classId");
+      const cachedClassId = cached?.filters?.classFilter ? String(cached.filters.classFilter) : "";
+      const cacheMatchesUrl = !classIdFromUrl || cachedClassId === classIdFromUrl;
+
+      if (cached.filters) {
+        setFilters((prev) => ({
+          ...prev,
+          ...cached.filters,
+          classFilter: classIdFromUrl || cachedClassId || prev.classFilter,
+        }));
+        // Only rewrite URL if there's no classId in the URL already
+        if (!classIdFromUrl && cachedClassId) {
+          setSearchParams({ classId: cachedClassId });
+        }
+      }
+
+      if (cacheMatchesUrl) {
+        if (Array.isArray(cached.students)) setStudents(cached.students);
+        if (cached.pagination) setPagination(cached.pagination);
+        if (typeof cached.searchInput === "string") setSearchInput(cached.searchInput);
+        skipNextFetchRef.current = true; // Skip refetch only when cache matches the target class
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Failed to restore student list cache:", err);
+    }
+  }, [currentUser, setSearchParams, searchParams]);
+
   // Update URL params when class changes
   useEffect(() => {
     const classIdFromUrl = searchParams.get("classId");
@@ -105,7 +152,13 @@ const StudentListPage = () => {
 
   // Fetch students
   useEffect(() => {
-    if (userLoaded && classesLoaded && currentUser) fetchStudents();
+    if (userLoaded && classesLoaded && currentUser) {
+      if (skipNextFetchRef.current) {
+        skipNextFetchRef.current = false;
+        return;
+      }
+      fetchStudents();
+    }
   }, [filters, userLoaded, classesLoaded, currentUser]);
 
   // Update selected class
@@ -236,6 +289,23 @@ const StudentListPage = () => {
     }
   };
 
+  // Cache list state so going back keeps the previous data set
+  useEffect(() => {
+    if (typeof window === "undefined" || !currentUser) return;
+    try {
+      const payload = {
+        userId: currentUser.id || currentUser._id || null,
+        filters,
+        pagination,
+        students,
+        searchInput,
+      };
+      sessionStorage.setItem(STUDENT_LIST_CACHE_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.error("Failed to cache student list state:", err);
+    }
+  }, [students, filters, pagination, searchInput, currentUser]);
+
   if (loading && !currentUser) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -250,6 +320,17 @@ const StudentListPage = () => {
   // ==== Render ====
   return (
     <div className="space-y-6">
+      {fromClassList && (
+        <button
+          type="button"
+          onClick={() => navigate("/classes")}
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Quay lại danh sách lớp
+        </button>
+      )}
+
       <ClassBanner
         selectedClass={selectedClass}
         currentUser={currentUser}

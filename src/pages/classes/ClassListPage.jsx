@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -14,19 +14,43 @@ import {
 } from 'lucide-react';
 import { classService } from '../../services/classService.js';
 import { departmentService } from '../../services/departmentService.js';
+import { authService } from '../../services/authService';
+
+const CLASS_LIST_CACHE_KEY = 'class-list-cache';
 
 const ClassListPage = () => {
     const navigate = useNavigate();
-    const [classes, setClasses] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const currentUserIdRef = useRef(authService.getCurrentUserSync()?.id || authService.getCurrentUserSync()?._id || null);
+    const cacheRef = useRef(null);
+    if (!cacheRef.current && typeof window !== 'undefined') {
+        try {
+            const cached = JSON.parse(sessionStorage.getItem(CLASS_LIST_CACHE_KEY));
+            if (cached?.userId && currentUserIdRef.current && cached.userId !== currentUserIdRef.current) {
+                cacheRef.current = null;
+            } else {
+                cacheRef.current = cached;
+            }
+        } catch (err) {
+            console.error('Failed to parse class list cache:', err);
+            cacheRef.current = null;
+        }
+    }
+
+    const skipNextFetchRef = useRef(Boolean(cacheRef.current));
+    const [classes, setClasses] = useState(cacheRef.current?.classes || []);
+    const [departments, setDepartments] = useState(cacheRef.current?.departments || []);
+    const [loading, setLoading] = useState(!cacheRef.current);
     const [error, setError] = useState('');
     
     // Filter states
-    const [searchTerm, setSearchTerm] = useState('');
-    const [departmentFilter, setDepartmentFilter] = useState('');
+    const [searchTerm, setSearchTerm] = useState(cacheRef.current?.searchTerm || '');
+    const [departmentFilter, setDepartmentFilter] = useState(cacheRef.current?.departmentFilter || '');
 
     useEffect(() => {
+        if (skipNextFetchRef.current) {
+            skipNextFetchRef.current = false;
+            return;
+        }
         fetchData();
     }, []);
 
@@ -63,6 +87,23 @@ const ClassListPage = () => {
         const matchesDepartment = departmentFilter === '' || classItem.departmentId === parseInt(departmentFilter);
         return matchesSearch && matchesDepartment;
     });
+
+    // Persist cache so list restores quickly
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            const payload = {
+                userId: currentUserIdRef.current,
+                classes,
+                departments,
+                searchTerm,
+                departmentFilter
+            };
+            sessionStorage.setItem(CLASS_LIST_CACHE_KEY, JSON.stringify(payload));
+        } catch (err) {
+            console.error('Failed to cache class list state:', err);
+        }
+    }, [classes, departments, searchTerm, departmentFilter]);
 
     const formatTeachers = (classTeachers) => {
         if (!classTeachers || classTeachers.length === 0) {
@@ -241,9 +282,9 @@ const ClassListPage = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <button
-                                                            onClick={() => navigate(`/students?classId=${classItem.id}`)}
+                                                            onClick={() => navigate(`/students?classId=${classItem.id}`, { state: { fromClassList: true } })}
                                                             className="text-green-600 hover:text-green-800"
-                                                            title="Xem thiếu nhi"
+                                                            title="Xem chi tiết lớp"
                                                         >
                                                             <Eye className="w-4 h-4" />
                                                         </button>

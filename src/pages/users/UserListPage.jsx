@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -16,22 +16,43 @@ import { departmentService } from '../../services/departmentService';
 import { USER_ROLES } from '../../utils/constants';
 import { getRoleName } from '../../utils/helpers';
 import UserImportModal from '../../components/users/UserImportModal';
+import { authService } from '../../services/authService';
+
+const USER_LIST_CACHE_KEY = 'user-list-cache';
 
 const UserListPage = () => {
     const navigate = useNavigate();
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const currentUserIdRef = useRef(authService.getCurrentUserSync()?.id || authService.getCurrentUserSync()?._id || null);
+    const cacheRef = useRef(null);
+    if (!cacheRef.current && typeof window !== 'undefined') {
+        try {
+            const cached = JSON.parse(sessionStorage.getItem(USER_LIST_CACHE_KEY));
+            if (cached?.userId && currentUserIdRef.current && cached.userId !== currentUserIdRef.current) {
+                cacheRef.current = null;
+            } else {
+                cacheRef.current = cached;
+            }
+        } catch (err) {
+            console.error('Failed to parse user list cache:', err);
+            cacheRef.current = null;
+        }
+    }
+
+    const skipNextFetchRef = useRef(Boolean(cacheRef.current));
+    const [shouldAutoFetch, setShouldAutoFetch] = useState(!cacheRef.current);
+    const [users, setUsers] = useState(cacheRef.current?.users || []);
+    const [loading, setLoading] = useState(!cacheRef.current);
     const [error, setError] = useState('');
     const [filters, setFilters] = useState({
-        search: '',
-        roleFilter: '',
-        departmentFilter: '',
-        classFilter: '',
-        page: 1,
-        limit: 20
+        search: cacheRef.current?.filters?.search ?? '',
+        roleFilter: cacheRef.current?.filters?.roleFilter ?? '',
+        departmentFilter: cacheRef.current?.filters?.departmentFilter ?? '',
+        classFilter: cacheRef.current?.filters?.classFilter ?? '',
+        page: cacheRef.current?.filters?.page ?? 1,
+        limit: cacheRef.current?.filters?.limit ?? 20
     });
-    const [searchInput, setSearchInput] = useState('');
-    const [pagination, setPagination] = useState({});
+    const [searchInput, setSearchInput] = useState(cacheRef.current?.searchInput ?? '');
+    const [pagination, setPagination] = useState(cacheRef.current?.pagination || {});
     const [showImportModal, setShowImportModal] = useState(false);
 
     // New states for departments and classes
@@ -40,8 +61,13 @@ const UserListPage = () => {
     const [filteredClasses, setFilteredClasses] = useState([]);
 
     useEffect(() => {
+        if (skipNextFetchRef.current) {
+            skipNextFetchRef.current = false;
+            return;
+        }
+        if (!shouldAutoFetch) return;
         fetchUsers();
-    }, [filters]);
+    }, [filters, shouldAutoFetch]);
 
     useEffect(() => {
         setSearchInput(filters.search);
@@ -114,6 +140,7 @@ const UserListPage = () => {
             search: searchInput.trim(),
             page: 1
         }));
+        setShouldAutoFetch(true);
     };
 
     const handleSearchKeyPress = (e) => {
@@ -128,6 +155,7 @@ const UserListPage = () => {
             roleFilter: e.target.value,
             page: 1
         }));
+        setShouldAutoFetch(true);
     };
 
     const handleDepartmentFilter = (e) => {
@@ -137,6 +165,7 @@ const UserListPage = () => {
             classFilter: '', // Reset class filter when department changes
             page: 1
         }));
+        setShouldAutoFetch(true);
     };
 
     const handleClassFilter = (e) => {
@@ -145,10 +174,12 @@ const UserListPage = () => {
             classFilter: e.target.value,
             page: 1
         }));
+        setShouldAutoFetch(true);
     };
 
     const handlePageChange = (newPage) => {
         setFilters(prev => ({ ...prev, page: newPage }));
+        setShouldAutoFetch(true);
     };
 
     const handleResetPassword = async (userId) => {
@@ -178,6 +209,23 @@ const UserListPage = () => {
         fetchUsers();
         setShowImportModal(false);
     };
+
+    // Persist list state for faster back navigation
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            const payload = {
+                userId: currentUserIdRef.current,
+                filters,
+                searchInput,
+                users,
+                pagination
+            };
+            sessionStorage.setItem(USER_LIST_CACHE_KEY, JSON.stringify(payload));
+        } catch (err) {
+            console.error('Failed to cache user list state:', err);
+        }
+    }, [filters, searchInput, users, pagination]);
 
     // Helper function to format class/department info
     const formatClassDepartmentInfo = (user) => {

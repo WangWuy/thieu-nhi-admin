@@ -56,6 +56,15 @@ export const studentService = {
         return apiService.get(`/classes/${classId}/score-stats`);
     },
 
+    // Attendance history & stats
+    async getStudentAttendanceHistory(id, params = {}) {
+        return apiService.get(`/students/${id}/attendance/history`, params);
+    },
+
+    async getStudentAttendanceStats(id, params = {}) {
+        return apiService.get(`/students/${id}/attendance/stats`, params);
+    },
+
     // Import operations (delegated to importService)
     async importFromExcel(file, onProgress = null) {
         return importService.importStudentsFromExcel(file, onProgress);

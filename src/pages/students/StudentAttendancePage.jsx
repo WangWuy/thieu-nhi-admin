@@ -24,43 +24,67 @@ const StudentAttendancePage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [student, setStudent] = useState(null);
+    const [attendanceHistory, setAttendanceHistory] = useState([]);
+    const [attendanceStats, setAttendanceStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const fetchStudent = async () => {
+        const fetchStudentAndAttendance = async () => {
             try {
                 setLoading(true);
-                const data = await studentService.getStudentById(id);
-                setStudent(data);
+                setError("");
+
+                const studentData = await studentService.getStudentById(id);
+                setStudent(studentData);
+
+                const historyParams = {
+                    limit: 200,
+                };
+                if (studentData?.academicYear?.startDate) {
+                    historyParams.startDate = studentData.academicYear.startDate;
+                }
+                if (studentData?.academicYear?.endDate) {
+                    historyParams.endDate = studentData.academicYear.endDate;
+                }
+
+                const [historyRes, statsRes] = await Promise.all([
+                    studentService.getStudentAttendanceHistory(id, historyParams),
+                    studentService.getStudentAttendanceStats(id, historyParams),
+                ]);
+
+                setAttendanceHistory(historyRes?.records || []);
+                setAttendanceStats(statsRes || null);
             } catch (err) {
                 setError(err.message || "Không thể tải thông tin thiếu nhi");
             } finally {
                 setLoading(false);
             }
         };
-        fetchStudent();
+        fetchStudentAndAttendance();
     }, [id]);
 
     const groupedAttendance = useMemo(() => {
         const base = { thursday: [], sunday: [] };
-        if (!student?.attendance) return base;
-        student.attendance.forEach((att) => {
+        const source = attendanceHistory.length > 0 ? attendanceHistory : student?.attendance;
+        if (!source) return base;
+        source.forEach((att) => {
             if (att.attendanceType === "thursday") base.thursday.push(att);
             else if (att.attendanceType === "sunday") base.sunday.push(att);
         });
         return base;
-    }, [student]);
+    }, [student, attendanceHistory]);
 
     const renderList = (list, typeKey) => {
         const meta = typeMeta[typeKey];
+        const presentCount = attendanceStats?.typeStats?.[typeKey]?.present ?? list.length;
         return (
             <div className={`border rounded-lg ${meta?.color || "border-gray-200 bg-white"} p-4 space-y-3`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-gray-700" />
                         <h3 className="font-semibold text-gray-800">
-                            {meta?.label || "Khác"} ({list.length})
+                            {meta?.label || "Khác"} ({presentCount})
                         </h3>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${meta?.badge || "bg-gray-100 text-gray-700"}`}>
@@ -150,9 +174,34 @@ const StudentAttendancePage = () => {
                         </div>
                     </div>
 
+                    {attendanceStats && (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <p className="text-xs text-purple-700 uppercase">Điểm danh T5</p>
+                                <div className="text-2xl font-semibold text-purple-800">
+                                    {attendanceStats.typeStats?.thursday?.present ?? attendanceStats.student?.thursdayCount ?? 0}
+                                </div>
+                            </div>
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p className="text-xs text-amber-700 uppercase">Điểm danh CN</p>
+                                <div className="text-2xl font-semibold text-amber-800">
+                                    {attendanceStats.typeStats?.sunday?.present ?? attendanceStats.student?.sundayCount ?? 0}
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <p className="text-xs text-blue-700 uppercase">Điểm TB</p>
+                                <div className="text-2xl font-semibold text-blue-800">
+                                    {attendanceStats.student?.attendanceAverage?.toFixed
+                                        ? attendanceStats.student.attendanceAverage.toFixed(2)
+                                        : attendanceStats.student?.attendanceAverage || "—"}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {student?.academicYear && (
                         <StudentAttendanceOverview
-                            attendance={student.attendance || []}
+                            attendance={attendanceHistory.length > 0 ? attendanceHistory : (student.attendance || [])}
                             academicYear={student.academicYear}
                         />
                     )}
