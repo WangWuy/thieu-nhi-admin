@@ -357,7 +357,7 @@ const AttendancePage = () => {
 
                                 {/* Dropdown hiển thị khi có search hoặc focus */}
                                 {(showDropdown || classSearch) && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-200 overflow-y-auto">
                                         {filteredClasses.length > 0 ? (
                                             filteredClasses.map(cls => (
                                                 <button
