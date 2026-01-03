@@ -47,6 +47,7 @@ const StudentFormPage = () => {
   );
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [savingScores, setSavingScores] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
@@ -222,6 +223,54 @@ const StudentFormPage = () => {
     navigate("/students");
   };
 
+  const handleUpdateScores = async () => {
+    if (!isEditMode || !id) {
+      alert("Chỉ có thể cập nhật điểm cho thiếu nhi đã tồn tại");
+      return;
+    }
+
+    const newErrors = {};
+    ["study45Hk1", "examHk1", "study45Hk2", "examHk2"].forEach((field) => {
+      const value = parseFloat(formData[field]);
+      if (isNaN(value) || value < 0 || value > 10) {
+        newErrors[field] = "Điểm phải từ 0 đến 10";
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...newErrors }));
+      return;
+    }
+
+    setSavingScores(true);
+    try {
+      const scoreData = {
+        study45Hk1: formData.study45Hk1,
+        examHk1: formData.examHk1,
+        study45Hk2: formData.study45Hk2,
+        examHk2: formData.examHk2,
+      };
+      await studentService.updateStudentScores(Number(id), scoreData);
+      alert("Cập nhật điểm thành công!");
+
+      // Reload student data để lấy điểm trung bình mới
+      const updatedStudent = await studentService.getStudentById(id);
+      setStudent(updatedStudent);
+    } catch (error) {
+      if (error.response?.data?.details) {
+        const serverErrors = {};
+        error.response.data.details.forEach((detail) => {
+          serverErrors[detail.path] = detail.msg;
+        });
+        setErrors((prev) => ({ ...prev, ...serverErrors }));
+      } else {
+        alert("Lỗi khi cập nhật điểm: " + (error.response?.data?.message || error.message));
+      }
+    } finally {
+      setSavingScores(false);
+    }
+  };
+
   const extractStudentId = (data) => {
     if (!data) return null;
     if (typeof data === "number") return data;
@@ -239,13 +288,6 @@ const StudentFormPage = () => {
     if (!formData.fullName) newErrors.fullName = "Họ tên là bắt buộc";
     if (!formData.classId) newErrors.classId = "Lớp là bắt buộc";
 
-    ["study45Hk1", "examHk1", "study45Hk2", "examHk2"].forEach((field) => {
-      const value = parseFloat(formData[field]);
-      if (value < 0 || value > 10) {
-        newErrors[field] = "Điểm phải từ 0 đến 10";
-      }
-    });
-
     if (Object.keys(newErrors).length > 0) {
       setErrors((prev) => ({ ...prev, ...newErrors }));
       return;
@@ -254,13 +296,23 @@ const StudentFormPage = () => {
     setSaving(true);
     try {
       let savedStudent;
+      // Prepare data without scores for update/create
+      const { study45Hk1, examHk1, study45Hk2, examHk2, ...basicData } = formData;
+
       if (isEditMode) {
         savedStudent = await studentService.updateStudent(
           Number(id),
-          formData
+          basicData
         );
       } else {
-        savedStudent = await studentService.createStudent(formData);
+        // For new students, include default scores
+        savedStudent = await studentService.createStudent({
+          ...basicData,
+          study45Hk1: 0,
+          examHk1: 0,
+          study45Hk2: 0,
+          examHk2: 0,
+        });
       }
 
       const studentIdForAvatar = isEditMode
@@ -369,6 +421,9 @@ const StudentFormPage = () => {
               errors={errors}
               onChange={handleInputChange}
               calculateAverage={calculateStudyAverage}
+              onUpdateScores={handleUpdateScores}
+              isEditMode={isEditMode}
+              savingScores={savingScores}
             />
 
             <div className="flex justify-end gap-3 pt-4 border-t">

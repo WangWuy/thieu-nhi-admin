@@ -23,13 +23,38 @@ const StudentScoresSection = ({
     errors,
     onChange,
     calculateAverage,
+    onUpdateScores,
+    isEditMode,
+    savingScores,
 }) => {
     return (
         <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-blue-600" />
-                Điểm số giáo lý
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                    <Award className="w-5 h-5 text-blue-600" />
+                    Điểm số giáo lý
+                </h3>
+                {isEditMode && onUpdateScores && (
+                    <button
+                        type="button"
+                        onClick={onUpdateScores}
+                        disabled={savingScores}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        {savingScores ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang lưu...
+                            </>
+                        ) : (
+                            <>
+                                <Award className="w-4 h-4" />
+                                Cập nhật điểm
+                            </>
+                        )}
+                    </button>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-4 rounded-lg border border-blue-200">
